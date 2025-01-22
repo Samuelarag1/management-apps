@@ -1,24 +1,22 @@
 import Image from "next/image";
-import ThemeSwitcher from "./components/Switcher";
-import { Separator } from "@radix-ui/react-separator";
 
 export default function Home() {
   return (
     <div className="flex flex-col lg:flex-row lg:justify-around items-center  w-screen h-screen  justify-around">
-      <div>
-        <Image
-          src={"/samaragtech.png"}
-          alt="Logo enterprise"
-          height={300}
-          width={300}
-          className="lg:w-full lg:h-full h-[100px] w-[100px] shadow-black shadow-lg rounded-full"
-        />
+      <div className="flex flex-col lg:h-full items-center lg:justify-center justify-around gap-10">
+        <div>
+          <Image
+            src={"/samaragtech.png"}
+            alt="Logo enterprise"
+            height={300}
+            width={300}
+            className="lg:w-full lg:h-full h-[100px] w-[100px] shadow-black shadow-lg rounded-full"
+          />
+        </div>
+        <p className="font-semibold text-xl text-center">
+          Panel de administracion de proyectos personales
+        </p>
       </div>
-
-      <p className="font-semibold text-xl text-center">
-        Panel de administracion de proyectos personales
-      </p>
-      <Separator />
       <div className="bg-white  shadow-2xl shadow-black lg:h-[700px] h-[500px] w-[350px] flex flex-col items-center rounded-[15px] justify-around">
         <h1 className="text-3xl font-bold">Inicia sesion</h1>
         <div className="flex flex-col gap-5">
