@@ -8,11 +8,7 @@ export default function Home() {
   const [errors, setErrors] = useState({ email: "", password: "" });
 
   const loginSchema = z.object({
-    email: z
-      .string()
-      .email("Email Invalido")
-      .min(5, "Email Invalido")
-      .max(50, "Email Invalido"),
+    email: z.string(),
     password: z
       .string()
       .min(5, "Contraseña Invalida")
@@ -30,15 +26,13 @@ export default function Home() {
       console.log("Formulario valido");
       setErrors({ email: "", password: "" });
 
-      const response = await fetch("/api/login", {
+      fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
-
-      if (response) alert("Usuario logueado");
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: { email: string; password: string } = {
