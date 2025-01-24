@@ -1,6 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { GoEye, GoPencil, GoTrash } from "react-icons/go";
 
 export type Payment = {
   id: string;
@@ -12,7 +13,6 @@ export type Payment = {
     | "Finalizado"
     | "Archivado"
     | "Pausado";
-  email: string;
   initial_date: string;
   time_limit: string;
   finish_date: string;
@@ -43,6 +43,18 @@ export const columns: ColumnDef<Payment>[] = [
     header: "Estado",
   },
   {
+    accessorKey: "initial_date",
+    header: "Fecha de inicio",
+  },
+  {
+    accessorKey: "time_limit",
+    header: "Plazo límite",
+  },
+  {
+    accessorKey: "finish_date",
+    header: "Fecha de finalización",
+  },
+  {
     accessorKey: "amount",
     header: "Precio acordado",
   },
@@ -55,16 +67,16 @@ export const columns: ColumnDef<Payment>[] = [
     header: "Fecha de pago",
   },
   {
-    accessorKey: "finish_date",
-    header: "Fecha de finalizacion",
-  },
-  {
     accessorKey: "hosting",
-    header: "Renovacion de hosting",
+    header: "Renovación de hosting",
   },
   {
     accessorKey: "domain",
-    header: "Renovacion de dominio",
+    header: "Renovación de dominio",
+  },
+  {
+    accessorKey: "cloud_storage",
+    header: "Almacenamiento en la nube",
   },
   {
     accessorKey: "total",
@@ -76,14 +88,23 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex gap-2">
-          <button className="bg-blue-500 text-white p-2 rounded-full">
-            Editar
+          <button
+            onClick={() => alert(`Editando: ${row.original.project_name}`)}
+            className="bg-blue-500 text-white p-2 rounded-full shadow-sm shadow-black border-2 border-black hover:scale-110 duration-300"
+          >
+            <GoPencil size={20} />
           </button>
-          <button className="bg-red-500 text-white p-2 rounded-full">
-            Eliminar
+          <button
+            onClick={() => alert(`Eliminando: ${row.original.project_name}`)}
+            className="bg-red-500 text-white p-2 rounded-full shadow-sm shadow-black border-2 border-black hover:scale-110 duration-300"
+          >
+            <GoTrash size={20} />
           </button>
-          <button className="bg-black text-white p-2 rounded-full">
-            Detalles
+          <button
+            onClick={() => alert(`Más detalles: ${row.original.project_name}`)}
+            className="bg-black text-white p-2 rounded-full shadow-sm shadow-black border-2 border-black hover:scale-110 duration-300"
+          >
+            <GoEye size={20} />
           </button>
         </div>
       );
