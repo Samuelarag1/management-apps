@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { date, z } from "zod";
+import { z } from "zod";
 
 import {
   Dialog,
@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -58,12 +57,14 @@ const FormSchema = z.object({
     required_error: "Selecciona una fecha válida.",
   }),
 });
+
 export default function DemoPage() {
+  type FormSchemaType = z.infer<typeof FormSchema>;
   const handleOnSubmit = (data: z.infer<typeof FormSchema>) => {
     console.log("Formulario enviado:", data);
   };
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const form = useForm<FormSchemaType>({
     defaultValues: {
       project_name: "",
       project_description: "",
@@ -152,6 +153,7 @@ export default function DemoPage() {
                         <FormLabel>Descripción del proyecto</FormLabel>
                         <FormControl>
                           <Textarea
+                            className="resize-none"
                             placeholder="Describe los puntos clave"
                             {...field}
                           />

@@ -21,7 +21,6 @@ export type Payment = {
   hosting: string;
   domain: string;
   cloud_storage: string;
-  total: number;
   payment_date: string;
 };
 
@@ -47,16 +46,12 @@ export const columns: ColumnDef<Payment>[] = [
     header: "Fecha de inicio",
   },
   {
-    accessorKey: "time_limit",
-    header: "Plazo límite",
-  },
-  {
     accessorKey: "finish_date",
     header: "Fecha de finalización",
   },
   {
     accessorKey: "amount",
-    header: "Precio acordado",
+    header: "Precio final",
   },
   {
     accessorKey: "pre_payment",
@@ -79,8 +74,8 @@ export const columns: ColumnDef<Payment>[] = [
     header: "Almacenamiento en la nube",
   },
   {
-    accessorKey: "total",
-    header: "Total",
+    accessorKey: "progress",
+    header: "Progreso",
   },
   {
     accessorKey: "id",

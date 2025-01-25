@@ -10,7 +10,15 @@ const connectToDatabase = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI!, {});
   } catch (error) {
-    throw new Error("No se pudo conectar a la base de datos");
+    if (error instanceof Error) {
+      throw new Error(
+        `No se pudo conectar a la base de datos: ${error.message}`
+      );
+    } else {
+      throw new Error(
+        "No se pudo conectar a la base de datos: Error desconocido"
+      );
+    }
   }
 };
 
@@ -20,7 +28,7 @@ export async function POST(req: Request) {
 
     const { email, password } = await req.json();
 
-    let user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ email });
 
     if (!user) {
       return NextResponse.json(
