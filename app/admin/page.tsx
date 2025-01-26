@@ -40,6 +40,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 const FormSchema = z.object({
   project_name: z.string().min(1, "El nombre es requerido."),
   project_description: z.string().optional(),
@@ -56,6 +58,12 @@ const FormSchema = z.object({
   finish_date: z.date({
     required_error: "Selecciona una fecha válida.",
   }),
+  pre_payment: z.boolean().optional(),
+  payment: z.number().int().optional(),
+  payment_date: z.date().optional(),
+  hosting: z.date({ required_error: "Selecciona una fecha válida." }),
+  domain: z.date({ required_error: "Selecciona una fecha válida." }),
+  cloud_storage: z.date({ required_error: "Selecciona una fecha válida." }),
 });
 
 export default function DemoPage() {
@@ -71,6 +79,12 @@ export default function DemoPage() {
       status: "Diseñando",
       initial_date: new Date(),
       finish_date: new Date(),
+      pre_payment: false,
+      payment_date: new Date(),
+      payment: 0,
+      hosting: new Date(),
+      domain: new Date(),
+      cloud_storage: new Date(),
     },
   });
   return (
@@ -249,6 +263,103 @@ export default function DemoPage() {
                       )}
                     />
                   </div>
+                  <div className="flex justify-around gap-2">
+                    <FormField
+                      control={form.control}
+                      name="hosting"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Renovacion del hosting</FormLabel>
+                          <FormControl>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-[240px] pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Seleccionar fecha</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent>
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => field.onChange(date)}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </FormControl>
+
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="domain"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Renovacion de dominio</FormLabel>
+                          <FormControl>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-[240px] pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Seleccionar fecha</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent>
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => field.onChange(date)}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="w-full flex justify-between gap-2 items-center">
+                    <FormField
+                      control={form.control}
+                      name="payment"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Precio Final</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ingresa el precio acordado"
+                              type="text"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <Button type="submit">Guardar Proyecto</Button>
                 </form>
               </Form>
