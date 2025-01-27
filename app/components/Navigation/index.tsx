@@ -2,137 +2,57 @@
 import React, { useState, useEffect } from "react";
 import "./styles.css";
 import { Teko } from "next/font/google";
+import { usePathname } from "next/navigation";
 
 const teko = Teko({
   weight: "700",
   subsets: ["latin"],
 });
+
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [startX, setStartX] = useState<number | null>(null);
+  const path = usePathname();
+  if (path === "/") {
+    return null;
+  }
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
-  const handleSmoothScroll = (
-    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
-  ) => {
-    event.preventDefault();
-    const targetId = event.currentTarget.getAttribute("href")?.substring(1);
-    const targetElement = document.getElementById(targetId || "");
-    if (targetElement) {
-      window.scrollTo({
-        top: targetElement.offsetTop,
-        behavior: "smooth",
-      });
-    }
-    setMenuOpen(false);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setStartX(e.touches[0].clientX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (startX === null) return;
-    const endX = e.changedTouches[0].clientX;
-    const diffX = endX - startX;
-
-    if (diffX > 50) {
-      setMenuOpen(true);
-    }
-    if (diffX < -50) {
-      setMenuOpen(false);
-    }
-
-    setStartX(null);
-  };
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) setMenuOpen(false);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
   return (
-    <div
-      className="navbar"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      <h1 className={`${teko.className} text-3xl`}>
-        Samarag<span className="text-blue-600">Tech</span>
-      </h1>
-      <div className="hamburger">
-        <input
-          className="checkbox"
-          type="checkbox"
-          checked={menuOpen}
-          onChange={toggleMenu}
-        />
-        <svg fill="none" viewBox="0 0 50 50" height="50" width="50">
-          <path
-            className="lineTop line"
-            strokeLinecap="round"
-            strokeWidth="4"
-            stroke="black"
-            d="M6 11L44 11"
-          ></path>
-          <path
-            strokeLinecap="round"
-            strokeWidth="4"
-            stroke="black"
-            d="M6 24H43"
-            className="lineMid line"
-          ></path>
-          <path
-            strokeLinecap="round"
-            strokeWidth="4"
-            stroke="black"
-            d="M6 37H43"
-            className="lineBottom line"
-          ></path>
-        </svg>
-      </div>
+    <div className="navbar">
+      <h1 className={`${teko.className} text-3xl text-white`}>Panel Admin</h1>
+
+      <label>
+        <div className="w-9 h-10 cursor-pointer flex flex-col items-center justify-center">
+          <input
+            className="hidden peer"
+            type="checkbox"
+            checked={menuOpen}
+            onChange={toggleMenu}
+          />
+          <div className="w-[50%] h-[2px] bg-white rounded-sm transition-all duration-300 origin-left translate-y-[0.45rem] peer-checked:rotate-[-45deg]" />
+          <div className="w-[50%] h-[2px] bg-white rounded-md transition-all duration-300 origin-center peer-checked:hidden" />
+          <div className="w-[50%] h-[2px] bg-white rounded-md transition-all duration-300 origin-left -translate-y-[0.45rem] peer-checked:rotate-[45deg]" />
+        </div>
+      </label>
 
       <nav className={`menu ${menuOpen ? "open" : ""}`}>
         <ul>
           <li>
-            <a href="/home" className="nav-link" onClick={handleSmoothScroll}>
-              Inicio
+            <a href="/dashboard" className="nav-link">
+              Dashboard
             </a>
           </li>
           <li>
-            <a
-              href="#services"
-              className="nav-link"
-              onClick={handleSmoothScroll}
-            >
-              Servicios
+            <a href="/metrics" className="nav-link">
+              Metricas
             </a>
           </li>
           <li>
-            <a
-              href="#clients"
-              className="nav-link"
-              onClick={handleSmoothScroll}
-            >
-              Clientes
-            </a>
-          </li>
-          <li>
-            <a href="#planes" className="nav-link" onClick={handleSmoothScroll}>
-              Planes y precios
-            </a>
-          </li>
-          <li>
-            <a href="#faq" className="nav-link" onClick={handleSmoothScroll}>
-              Preguntas Frequentes
+            <a href="/projects" className="nav-link">
+              Proyectos
             </a>
           </li>
         </ul>

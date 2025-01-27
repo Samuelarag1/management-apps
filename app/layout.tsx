@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Oswald } from "next/font/google";
 import "./globals.css";
+import Navbar from "./components/Navigation";
 
 const oswald = Oswald({
   weight: ["200", "300", "400", "500", "600", "700"],
@@ -18,7 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={` ${oswald.className} antialiased`}>{children}</body>
+      <body className={` ${oswald.className} antialiased`}>
+        <Navbar />
+
+        {children}
+      </body>
     </html>
   );
 }

@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Navbar from "../components/Navigation";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -89,7 +90,8 @@ export default function DemoPage() {
   });
   return (
     <>
-      <div className="h-screen py-10">
+      <Navbar />
+      <div className="h-screen py-20">
         <h3 className="text-center font-bold text-3xl">Proyectos</h3>
         <div className="container flex justify-between mx-auto mt-5 p-2">
           <input

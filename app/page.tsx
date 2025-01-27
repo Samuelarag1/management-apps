@@ -51,7 +51,7 @@ export default function Home() {
         });
         setTimeout(() => {
           setAlert({ message: "", type: "", description: "" });
-          redirect("/admin");
+          redirect("/dashboard");
         }, 3000);
       } else {
         setAlert({
