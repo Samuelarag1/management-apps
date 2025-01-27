@@ -5,6 +5,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
+import Navigation from "./components/Navigation";
 
 export default function Home() {
   const [formData, setFormdata] = useState({ email: "", password: "" });
