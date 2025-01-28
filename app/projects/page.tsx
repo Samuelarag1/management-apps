@@ -106,21 +106,22 @@ export default function DemoPage() {
                 <IoIosAddCircle size={50} color="white" />
               </div>
             </DialogTrigger>
-            <DialogContent className="rounded-md w-full items-center flex flex-col">
+
+            <DialogContent className="rounded-md w-full items-center flex flex-col mt-10 mb-10">
               <DialogHeader>
                 <DialogTitle>Agregar nuevo proyecto</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form
-                  className="flex flex-col gap-4"
+                  className="flex flex-col gap-4 w-full overflow-auto max-h-[80vh]"
                   onSubmit={form.handleSubmit(handleOnSubmit)}
                 >
-                  <div className="w-full flex justify-between gap-2 items-center">
+                  <div className="w-full flex flex-col sm:flex-row sm:gap-4 gap-2">
                     <FormField
                       control={form.control}
                       name="project_name"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="w-full">
                           <FormLabel>Nombre del proyecto</FormLabel>
                           <FormControl>
                             <Input placeholder="Proyecto 1" {...field} />
@@ -133,11 +134,11 @@ export default function DemoPage() {
                       control={form.control}
                       name="status"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="w-full">
                           <FormLabel>Estado</FormLabel>
                           <FormControl>
                             <Select onValueChange={field.onChange}>
-                              <SelectTrigger className="w-[200px]">
+                              <SelectTrigger className="w-full sm:w-[200px]">
                                 <SelectValue placeholder="Estado" />
                               </SelectTrigger>
                               <SelectContent>
@@ -162,12 +163,13 @@ export default function DemoPage() {
                       )}
                     />
                   </div>
-                  <div className="w-full flex justify-between gap-2 items-center">
+
+                  <div className="w-full flex flex-col sm:flex-row sm:gap-4 gap-2">
                     <FormField
                       control={form.control}
                       name="payment"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
+                        <FormItem className="w-full">
                           <FormLabel>Precio Final</FormLabel>
                           <FormControl>
                             <Input
@@ -183,7 +185,7 @@ export default function DemoPage() {
                       control={form.control}
                       name="pre_payment"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
+                        <FormItem className="w-full">
                           <FormLabel>Pago anticipado</FormLabel>
                           <FormControl>
                             <Input
@@ -196,6 +198,8 @@ export default function DemoPage() {
                       )}
                     />
                   </div>
+
+                  {/* Descripción del proyecto */}
                   <FormField
                     control={form.control}
                     name="project_description"
@@ -213,12 +217,13 @@ export default function DemoPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="flex justify-around gap-2">
+
+                  <div className="w-full flex flex-col sm:flex-row sm:gap-4 gap-2">
                     <FormField
                       control={form.control}
                       name="initial_date"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
+                        <FormItem className="w-full">
                           <FormLabel>Fecha de inicio</FormLabel>
                           <FormControl>
                             <Popover>
@@ -226,7 +231,7 @@ export default function DemoPage() {
                                 <Button
                                   variant={"outline"}
                                   className={cn(
-                                    "w-[240px] pl-3 text-left font-normal",
+                                    "w-full sm:w-[240px] pl-3 text-left font-normal",
                                     !field.value && "text-muted-foreground"
                                   )}
                                 >
@@ -247,7 +252,6 @@ export default function DemoPage() {
                               </PopoverContent>
                             </Popover>
                           </FormControl>
-
                           <FormMessage />
                         </FormItem>
                       )}
@@ -257,102 +261,15 @@ export default function DemoPage() {
                       control={form.control}
                       name="finish_date"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
-                          <FormLabel>Fecha de Finalizacion</FormLabel>
-                          <FormControl>
-                            <Popover>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-[240px] pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                <PopoverTrigger>
-                                  {field.value
-                                    ? format(field.value, "PPP")
-                                    : "Seleccionar fecha"}
-                                </PopoverTrigger>
-                                <PopoverContent>
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={(date) => {
-                                      if (
-                                        date &&
-                                        date >= form.getValues("initial_date")
-                                      ) {
-                                        field.onChange(date);
-                                      }
-                                    }}
-                                    disabled={(date) =>
-                                      date < form.getValues("initial_date")
-                                    }
-                                  />
-                                </PopoverContent>
-
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </Popover>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="flex justify-around gap-2">
-                    <FormField
-                      control={form.control}
-                      name="hosting"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
-                          <FormLabel>Renovacion del hosting</FormLabel>
+                        <FormItem className="w-full">
+                          <FormLabel>Fecha de Finalización</FormLabel>
                           <FormControl>
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button
                                   variant={"outline"}
                                   className={cn(
-                                    "w-[240px] pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP")
-                                  ) : (
-                                    <span>Seleccionar fecha</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent>
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={(date) => field.onChange(date)}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </FormControl>
-
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="domain"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
-                          <FormLabel>Renovacion de dominio</FormLabel>
-                          <FormControl>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-[240px] pl-3 text-left font-normal",
+                                    "w-full sm:w-[240px] pl-3 text-left font-normal",
                                     !field.value && "text-muted-foreground"
                                   )}
                                 >
@@ -378,48 +295,60 @@ export default function DemoPage() {
                       )}
                     />
                   </div>
-                  <div>
-                    <FormField
-                      control={form.control}
-                      name="cloud_storage"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
-                          <FormLabel>Renovacion de la BDD</FormLabel>
-                          <FormControl>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-[240px] pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP")
-                                  ) : (
-                                    <span>Seleccionar fecha</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent>
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={(date) => field.onChange(date)}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </FormControl>
 
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <div className="w-full flex flex-col sm:flex-row sm:gap-4 gap-2">
+                    {(["hosting", "domain", "cloud_storage"] as const).map(
+                      (name, idx) => (
+                        <FormField
+                          key={idx}
+                          control={form.control}
+                          name={name}
+                          render={({ field }) => (
+                            <FormItem className="w-full">
+                              <FormLabel>
+                                Renovación{" "}
+                                {name === "hosting"
+                                  ? "del hosting"
+                                  : name === "domain"
+                                  ? "de dominio"
+                                  : "de la BDD"}
+                              </FormLabel>
+                              <FormControl>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant={"outline"}
+                                      className={cn(
+                                        "w-full sm:w-[240px] pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value
+                                        ? format(field.value, "PPP")
+                                        : "Seleccionar fecha"}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent>
+                                    <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={(date) => field.onChange(date)}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    )}
                   </div>
 
-                  <Button type="submit">Guardar Proyecto</Button>
+                  <Button type="submit" className="mt-4">
+                    Guardar Proyecto
+                  </Button>
                 </form>
               </Form>
             </DialogContent>
