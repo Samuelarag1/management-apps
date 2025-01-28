@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./styles.css";
 import { Teko } from "next/font/google";
 import { usePathname } from "next/navigation";
@@ -40,6 +40,12 @@ const Navbar: React.FC = () => {
 
       <nav className={`menu ${menuOpen ? "open" : ""}`}>
         <ul>
+          {" "}
+          <li>
+            <a href="/projects" className="nav-link">
+              Proyectos
+            </a>
+          </li>
           <li>
             <a href="/dashboard" className="nav-link">
               Dashboard
@@ -48,11 +54,6 @@ const Navbar: React.FC = () => {
           <li>
             <a href="/metrics" className="nav-link">
               Metricas
-            </a>
-          </li>
-          <li>
-            <a href="/projects" className="nav-link">
-              Proyectos
             </a>
           </li>
         </ul>

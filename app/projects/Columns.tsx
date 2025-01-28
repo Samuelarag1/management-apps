@@ -21,7 +21,6 @@ export type Payment = {
   hosting: string;
   domain: string;
   cloud_storage: string;
-  payment_date: string;
 };
 
 export const columns: ColumnDef<Payment>[] = [
@@ -56,10 +55,6 @@ export const columns: ColumnDef<Payment>[] = [
   {
     accessorKey: "pre_payment",
     header: "Pago anticipado",
-  },
-  {
-    accessorKey: "payment_date",
-    header: "Fecha de pago",
   },
   {
     accessorKey: "hosting",

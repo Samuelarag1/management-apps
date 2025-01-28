@@ -42,7 +42,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 const FormSchema = z.object({
   project_name: z.string().min(1, "El nombre es requerido."),
   project_description: z.string().optional(),
@@ -111,10 +110,10 @@ export default function DemoPage() {
               </DialogHeader>
               <Form {...form}>
                 <form
-                  className="space-y-8"
+                  className="flex flex-col gap-4"
                   onSubmit={form.handleSubmit(handleOnSubmit)}
                 >
-                  <div className="flex w-full justify-between">
+                  <div className="w-full flex justify-between gap-2 items-center">
                     <FormField
                       control={form.control}
                       name="project_name"
@@ -136,7 +135,7 @@ export default function DemoPage() {
                           <FormLabel>Estado</FormLabel>
                           <FormControl>
                             <Select onValueChange={field.onChange}>
-                              <SelectTrigger className="w-[180px]">
+                              <SelectTrigger className="w-[200px]">
                                 <SelectValue placeholder="Estado" />
                               </SelectTrigger>
                               <SelectContent>
@@ -155,6 +154,40 @@ export default function DemoPage() {
                                 <SelectItem value="Pausado">Pausado</SelectItem>
                               </SelectContent>
                             </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="w-full flex justify-between gap-2 items-center">
+                    <FormField
+                      control={form.control}
+                      name="payment"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Precio Final</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ingresa el precio acordado"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="pre_payment"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col gap-2">
+                          <FormLabel>Pago anticipado</FormLabel>
+                          <FormControl>
+                            <Switch
+                              onChange={field.onChange}
+                              checked={field.value}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -343,19 +376,41 @@ export default function DemoPage() {
                       )}
                     />
                   </div>
-                  <div className="w-full flex justify-between gap-2 items-center">
+                  <div>
                     <FormField
                       control={form.control}
-                      name="payment"
+                      name="cloud_storage"
                       render={({ field }) => (
                         <FormItem className="flex flex-col gap-2">
-                          <FormLabel>Precio Final</FormLabel>
+                          <FormLabel>Renovacion de la BDD</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Ingresa el precio acordado"
-                              type="text"
-                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-[240px] pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Seleccionar fecha</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent>
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => field.onChange(date)}
+                                />
+                              </PopoverContent>
+                            </Popover>
                           </FormControl>
+
                           <FormMessage />
                         </FormItem>
                       )}

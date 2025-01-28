@@ -5,7 +5,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
-import Navigation from "./components/Navigation";
+import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   const [formData, setFormdata] = useState({ email: "", password: "" });
@@ -94,6 +94,8 @@ export default function Home() {
           Panel de administracion de proyectos personales
         </p>
       </div>
+      <Separator orientation="vertical" className="h-[90%] hidden lg:flex" />
+      <Separator orientation="horizontal" className="w-[90%] flex lg:hidden" />
       <form
         className="bg-white  shadow-2xl shadow-black lg:h-[700px] h-[500px] w-[350px] flex flex-col items-center rounded-[15px] justify-around"
         onSubmit={handleOnSubmit}
