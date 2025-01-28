@@ -26,6 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -41,7 +42,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
+
 const FormSchema = z.object({
   project_name: z.string().min(1, "El nombre es requerido."),
   project_description: z.string().optional(),
@@ -58,7 +59,7 @@ const FormSchema = z.object({
   finish_date: z.date({
     required_error: "Selecciona una fecha válida.",
   }),
-  pre_payment: z.boolean().optional(),
+  pre_payment: z.number().optional(),
   payment: z.number().int().optional(),
   payment_date: z.date().optional(),
   hosting: z.date({ required_error: "Selecciona una fecha válida." }),
@@ -71,15 +72,15 @@ export default function DemoPage() {
   const handleOnSubmit = (data: z.infer<typeof FormSchema>) => {
     console.log("Formulario enviado:", data);
   };
-
   const form = useForm<FormSchemaType>({
+    resolver: zodResolver(FormSchema), // Using the schema for validation
     defaultValues: {
       project_name: "",
       project_description: "",
       status: "Diseñando",
       initial_date: new Date(),
       finish_date: new Date(),
-      pre_payment: false,
+      pre_payment: 0,
       payment_date: new Date(),
       payment: 0,
       hosting: new Date(),
@@ -87,6 +88,7 @@ export default function DemoPage() {
       cloud_storage: new Date(),
     },
   });
+
   return (
     <>
       <Navbar />
@@ -184,9 +186,9 @@ export default function DemoPage() {
                         <FormItem className="flex flex-col gap-2">
                           <FormLabel>Pago anticipado</FormLabel>
                           <FormControl>
-                            <Switch
-                              onChange={field.onChange}
-                              checked={field.value}
+                            <Input
+                              placeholder="Ingresa el monto del pago anticipado"
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
