@@ -54,7 +54,21 @@ export async function POST(req: Request) {
       { expiresIn: "1h" }
     );
 
-    return NextResponse.json({ token }, { status: 200 });
+    const response = NextResponse.json(
+      { message: "Login exitoso" },
+      { status: 200 }
+    );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60,
+      sameSite: "strict" as const,
+    };
+
+    response.cookies.set("auth_token", token, cookieOptions);
+
+    return response;
   } catch (error) {
     console.error("Error en la autenticación:", error);
 

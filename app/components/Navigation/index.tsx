@@ -19,7 +19,22 @@ const Navbar: React.FC = () => {
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
+      if (response.ok) {
+        window.location.href = "/";
+      } else {
+        console.error("Error al hacer logout");
+      }
+    } catch (error) {
+      console.error("Error de red al hacer logout:", error);
+    }
+  };
   return (
     <div className="navbar">
       <h1 className={`${teko.className} text-3xl text-white`}>Panel Admin</h1>
@@ -55,6 +70,9 @@ const Navbar: React.FC = () => {
             <a href="/metrics" className="nav-link">
               Metricas
             </a>
+          </li>
+          <li>
+            <button onClick={handleLogout}>Cerrar sesion</button>
           </li>
         </ul>
       </nav>

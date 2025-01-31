@@ -2,12 +2,13 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Terminal } from "lucide-react";
 import Image from "next/image";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
+  const router = useRouter();
   const [formData, setFormdata] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [alert, setAlert] = useState({
@@ -41,6 +42,7 @@ export default function Home() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
+        credentials: "same-origin",
       });
 
       if (response.ok) {
@@ -51,7 +53,7 @@ export default function Home() {
         });
         setTimeout(() => {
           setAlert({ message: "", type: "", description: "" });
-          redirect("/dashboard");
+          router.push("/dashboard");
         }, 3000);
       } else {
         setAlert({
