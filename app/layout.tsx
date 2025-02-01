@@ -8,8 +8,9 @@ const oswald = Oswald({
   subsets: ["latin"],
 });
 export const metadata: Metadata = {
-  title: "Administracion de proyectos",
+  title: "Gestor de proyectos",
   description: "Administracion de proyectos",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
