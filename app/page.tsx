@@ -81,53 +81,39 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:justify-around items-center  w-screen h-screen  justify-around">
-      <div className="flex flex-col lg:h-full items-center lg:justify-center justify-around gap-10">
-        <div>
-          <Image
-            src={"/samaragtech.png"}
-            alt="Logo enterprise"
-            height={300}
-            width={300}
-            className="lg:w-full lg:h-full h-[100px] w-[100px] shadow-black shadow-lg rounded-full"
-          />
-        </div>
-        <p className="font-semibold text-xl text-center">
-          Panel de administracion de proyectos personales
-        </p>
+    <div className="h-screen flex flex-col items-center bg-[#d9d9d9] py-20">
+      <div>
+        <h1 className="text-4xl font-bold text-[#4C417D]">Administra</h1>
+        <p className="italic text-md ml-2">by Samuel Aragon</p>
       </div>
-      <Separator orientation="vertical" className="h-[90%] hidden lg:flex" />
-      <Separator orientation="horizontal" className="w-[90%] flex lg:hidden" />
       <form
-        className="bg-white  shadow-2xl shadow-black lg:h-[700px] h-[500px] w-[350px] flex flex-col items-center rounded-[15px] justify-around"
+        className="flex flex-col items-center mt-40"
         onSubmit={handleOnSubmit}
       >
-        <h1 className="text-3xl font-bold">Inicia sesion</h1>
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
           <div className="flex flex-col">
-            <strong className="ml-2">Email</strong>
             <input
               name="email"
-              type="text"
+              type="email"
               placeholder="email@email.com"
               value={formData?.email}
               onChange={handleChange}
-              className="bg-gray-300 p-2 rounded-full focus:outline-none text-black w-[300px] h-[50px]"
+              className="bg-transparent border-solid border-2 border-black p-2 rounded-full focus:outline-none text-black w-[300px] h-[50px]"
             />
             {errors.email && (
               <span className="text-red-500">{errors.email}</span>
             )}
           </div>
           <div className="flex flex-col">
-            <strong className="ml-2">Contraseña</strong>
             <input
               name="password"
               type="password"
               placeholder="********"
               onChange={handleChange}
               value={formData?.password}
-              className="bg-gray-300 p-2 rounded-full focus:outline-none text-black w-[300px] h-[50px]"
+              className="bg-transparent border-solid border-2 border-black p-2 rounded-full focus:outline-none text-black w-[300px] h-[50px] shadow-md shadow-black"
             />
+
             {errors.password && (
               <span className="text-red-500">{errors.password}</span>
             )}
@@ -135,7 +121,7 @@ export default function Home() {
         </div>
         <div>
           <button
-            className="bg-blue-950 p-2 rounded-full focus:outline-none text-white w-[300px] h-[50px] mt-5 shadow-lg shadow-black border-2 border-black"
+            className="bg-[#255B30] p-2 rounded-full text-gray-200 shadow-sm shadow-black border-2 border-green-950 mt-12"
             type="submit"
           >
             Iniciar sesion

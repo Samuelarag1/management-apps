@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Oswald } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navigation";
 
-const oswald = Oswald({
+const oswald = Montserrat({
   weight: ["200", "300", "400", "500", "600", "700"],
   subsets: ["latin"],
+  style: ["italic", "normal"],
 });
 export const metadata: Metadata = {
   title: "Gestor de proyectos",
