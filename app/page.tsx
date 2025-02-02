@@ -1,11 +1,11 @@
 "use client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { IoMailSharp } from "react-icons/io5";
+import { RiLockPasswordFill } from "react-icons/ri";
 import { AlertTriangle, Terminal } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
-import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function Home() {
   });
 
   const loginSchema = z.object({
-    email: z.string(),
+    email: z.string().email("Email invalido"),
     password: z
       .string()
       .min(5, "Contraseña Invalida")
@@ -27,6 +27,8 @@ export default function Home() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormdata({ ...formData, [e?.target?.name]: e?.target?.value });
+    if (formData.email === "" || formData.password === "") {
+    }
   };
 
   const handleOnSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,7 +67,6 @@ export default function Home() {
           setAlert({ message: "", type: "", description: "" });
         }, 3000);
       }
-      console.log(response);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: { email: string; password: string } = {
@@ -82,6 +83,7 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col items-center bg-[#d9d9d9] py-20">
+      <div className="absolute bottom-0  right-0 w-36 full h-36 bg-blue-500 rounded-tl-full" />
       <div>
         <h1 className="text-4xl font-bold text-[#4C417D]">Administra</h1>
         <p className="italic text-md ml-2">by Samuel Aragon</p>
@@ -92,42 +94,59 @@ export default function Home() {
       >
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">
-            <input
-              name="email"
-              type="email"
-              placeholder="email@email.com"
-              value={formData?.email}
-              onChange={handleChange}
-              className="bg-transparent border-solid border-2 border-black p-2 rounded-full focus:outline-none text-black w-[300px] h-[50px]"
-            />
+            <p className="ml-2 font-bold">Email</p>
+            <div className="relative w-full max-w-xs">
+              <input
+                name="email"
+                type="email"
+                placeholder="email@email.com"
+                value={formData?.email}
+                onChange={handleChange}
+                className="py-2 pl-10 pr-4 bg-white rounded-md w-full h-[55px] placeholder:text-gray-600 shadow-md font-bold focus:outline-none "
+              />
+              <IoMailSharp
+                className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500"
+                size={18}
+              />
+            </div>
             {errors.email && (
-              <span className="text-red-500">{errors.email}</span>
+              <span className="text-red-500 text-center">{errors.email}</span>
             )}
           </div>
           <div className="flex flex-col">
-            <input
-              name="password"
-              type="password"
-              placeholder="********"
-              onChange={handleChange}
-              value={formData?.password}
-              className="bg-transparent border-solid border-2 border-black p-2 rounded-full focus:outline-none text-black w-[300px] h-[50px] shadow-md shadow-black"
-            />
+            <p className="ml-2 font-bold">Contrasena</p>
+            <div className="relative w-full max-w-xs">
+              <input
+                name="password"
+                type="password"
+                placeholder="********"
+                onChange={handleChange}
+                value={formData?.password}
+                className="w-full py-2 pl-10 pr-4 bg-white rounded-md  h-[55px] placeholder:text-gray-600 shadow-md font-bold focus:outline-none text-xl"
+              />
+              <RiLockPasswordFill
+                className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500"
+                size={18}
+              />
+            </div>
 
             {errors.password && (
-              <span className="text-red-500">{errors.password}</span>
+              <span className="text-red-500 text-center">
+                {errors.password}
+              </span>
             )}
           </div>
         </div>
         <div>
           <button
-            className="bg-[#255B30] p-2 rounded-full text-gray-200 shadow-sm shadow-black border-2 border-green-950 mt-12"
+            className="bg-[#255B30] font-semibold p-2 rounded-full text-gray-200 shadow-sm shadow-black border-2 border-green-950 mt-12 hover:scale-110 duration-300"
             type="submit"
           >
-            Iniciar sesion
+            INGRESAR
           </button>
         </div>
       </form>
+
       {alert.type && (
         <div className="lg:absolute lg:right-2 lg:bottom-2 w-full p-2 lg:w-fit lg:p-0">
           <Alert variant={alert.type === "error" ? "destructive" : "default"}>
