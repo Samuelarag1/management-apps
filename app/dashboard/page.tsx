@@ -4,33 +4,38 @@ import Link from "next/link";
 
 function Dashboard() {
   return (
-    <div className="py-20">
+    <div className="py-20 bg-[#d9d9d9] h-full">
+      <div className="w-full ml-2">
+        <p className="font-semibold text-sm italic">Hola, Samuel.</p>
+      </div>
       <div className="m-2">
         <h1 className="text-3xl text-center font-bold">Dashboard</h1>
       </div>
-      <div className="flex w-full">
+      <div className="flex w-full mt-5">
         <div className="flex w-full justify-around flex-wrap gap-2">
           <Card className="h-40 w-80 text-center justify-between flex flex-col shadow-md">
             <CardHeader>
               <CardTitle>
                 <div className="flex gap-2 font-medium justify-center">
-                  <p className="text-center">Proyectos en curso e historicos</p>
+                  <p className="text-center font-bold text-xl">
+                    Proyectos en curso e historicos
+                  </p>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Link
                 href={"/projects"}
-                className="bg-black text-white shadow-md p-2 rounded-full hover:scale-110 duration-300"
+                className="bg-black text-white shadow-md p-3 rounded-md"
               >
                 Proyectos
               </Link>
             </CardContent>
           </Card>
-          <Card className="h-40 w-80 text-center justify-between flex flex-col shadow-md">
+          <Card className="h-40 w-80 text-center justify-between flex flex-col shadow-md border-2">
             <CardHeader>
               <CardTitle>
-                <div className="flex gap-2 font-medium justify-center">
+                <div className="flex gap-2 font-bold text-xl">
                   Estadisticas de los proyectos en curso
                 </div>
               </CardTitle>
@@ -38,7 +43,7 @@ function Dashboard() {
             <CardContent>
               <Link
                 href={"/metrics"}
-                className="bg-black text-white shadow-md p-2 rounded-full hover:scale-110 duration-300"
+                className="bg-black text-white shadow-md p-3 rounded-md"
               >
                 Metricas
               </Link>
@@ -46,9 +51,28 @@ function Dashboard() {
           </Card>
         </div>
       </div>
-      <footer className="absolute bottom-0 w-full bg-black text-white p-10">
+      <div className="w-full flex items-center justify-center mt-2">
+        <Card className="h-40 w-80 text-center justify-between flex flex-col shadow-md border-2">
+          <CardHeader>
+            <CardTitle>
+              <div className="flex gap-2 justify-center font-bold text-xl">
+                Pagos
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href={"/payments"}
+              className="bg-black text-white shadow-md p-3 rounded-md"
+            >
+              Pagos
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+      <footer className="absolute bottom-0 w-full text-black p-10">
         <p className="text-center text-sm">
-          &copy; 2022 - Todos los derechos reservados
+          &copy; 2025 - Todos los derechos reservados
         </p>
       </footer>
     </div>

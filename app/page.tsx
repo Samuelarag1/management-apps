@@ -139,9 +139,9 @@ export default function Home() {
               )}
             </div>
           </div>
-          <div>
+          <div className="w-full flex items-center justify-center">
             <button
-              className="bg-[#255B30] font-semibold p-2 rounded-full text-gray-200 shadow-sm shadow-black border-2 border-green-950 mt-12 hover:scale-110 duration-300 active:scale-110"
+              className="bg-[#255B30] font-semibold h-12 w-full rounded-full text-gray-200 shadow-sm shadow-black border-2 border-green-950 mt-12 hover:scale-110 duration-300 active:scale-105"
               type="submit"
             >
               INGRESAR
