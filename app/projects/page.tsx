@@ -73,7 +73,7 @@ export default function DemoPage() {
     console.log("Formulario enviado:", data);
   };
   const form = useForm<FormSchemaType>({
-    resolver: zodResolver(FormSchema), // Using the schema for validation
+    resolver: zodResolver(FormSchema),
     defaultValues: {
       project_name: "",
       project_description: "",

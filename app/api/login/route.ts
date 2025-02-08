@@ -1,34 +1,18 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
-import { UserModel } from "@/Models/User";
+import bcrypt from "bcrypt";
+import { PrismaClient } from "@prisma/client";
 
-const connectToDatabase = async () => {
-  if (mongoose.connections[0].readyState) {
-    return;
-  }
-  try {
-    await mongoose.connect(process.env.MONGODB_URI!, {});
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(
-        `No se pudo conectar a la base de datos: ${error.message}`
-      );
-    } else {
-      throw new Error(
-        "No se pudo conectar a la base de datos: Error desconocido"
-      );
-    }
-  }
-};
+const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    await connectToDatabase();
-
     const { email, password } = await req.json();
 
-    const user = await UserModel.findOne({ email });
+    // Buscar el usuario en la base de datos
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
     if (!user) {
       return NextResponse.json(
@@ -37,7 +21,9 @@ export async function POST(req: Request) {
       );
     }
 
-    if (user.password !== password) {
+    // Verificar la contraseña
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return NextResponse.json(
         { message: "Contraseña incorrecta" },
         { status: 401 }
@@ -46,9 +32,9 @@ export async function POST(req: Request) {
 
     const token = jwt.sign(
       {
-        sub: user._id,
+        sub: user.id,
         email: user.email,
-        roles: user.roles,
+        roles: user.role, // Asegúrate de que "roles" existe en Prisma
       },
       process.env.JWT_SECRET!,
       { expiresIn: "1h" }
