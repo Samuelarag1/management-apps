@@ -6,7 +6,7 @@ import { GoEye, GoPencil, GoTrash } from "react-icons/go";
 export type Payment = {
   id: string;
   project_name: string;
-  amount: number;
+  amount: string;
   status:
     | "Diseñando"
     | "Desarrollando"
@@ -17,7 +17,7 @@ export type Payment = {
   time_limit: string;
   finish_date: string;
   description: string;
-  pre_payment: number;
+  pre_payment: string;
   hosting: string;
   domain: string;
   cloud_storage: string;
@@ -55,22 +55,6 @@ export const columns: ColumnDef<Payment>[] = [
   {
     accessorKey: "pre_payment",
     header: "Pago anticipado",
-  },
-  {
-    accessorKey: "hosting",
-    header: "Renovación de hosting",
-  },
-  {
-    accessorKey: "domain",
-    header: "Renovación de dominio",
-  },
-  {
-    accessorKey: "cloud_storage",
-    header: "Almacenamiento en la nube",
-  },
-  {
-    accessorKey: "progress",
-    header: "Progreso",
   },
   {
     accessorKey: "id",
