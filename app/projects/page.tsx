@@ -9,8 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 
 const FormSchema = z.object({
-  project_name: z.string().min(4, "El nombre es requerido."),
-  project_description: z.string().optional(),
+  // project_name: z.string().min(4, "El nombre es requerido."),
+  // project_description: z.string().optional(),
   // status: z.enum([
   //   "Diseñando",
   //   "Desarrollando",
