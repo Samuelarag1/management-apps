@@ -6,10 +6,8 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    // Obtener los datos del cuerpo de la solicitud
     const { email, password, role } = await req.json();
 
-    // Verificar si el usuario ya existe
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -21,10 +19,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear el nuevo usuario en la base de datos
     const newUser = await prisma.user.create({
       data: {
         email,
@@ -34,7 +30,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Devolver una respuesta exitosa
     return NextResponse.json(
       { message: "Usuario registrado exitosamente", user: newUser },
       { status: 201 }
