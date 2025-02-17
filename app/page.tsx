@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 import Loader from "./components/Loader/Loader";
+import { prisma } from "@/lib/prisma";
+import { Project } from "@prisma/client";
 
 export default function Home() {
   const router = useRouter();
@@ -79,6 +81,31 @@ export default function Home() {
         });
         setErrors(fieldErrors);
       }
+    }
+  };
+
+  const createProject = async (formData: FormData) => {
+    "use server";
+    try {
+      const data = {
+        name: formData.get("name"),
+        description: formData.get("description") || undefined,
+      };
+
+      const validatedData = projectScheme.parse(data);
+
+      // Simulación de creación en base de datos (reemplazar con lógica real)
+      const newProject: Project = {
+        id: crypto.randomUUID(),
+        name: validatedData.name,
+        description: validatedData.description,
+        createdAt: new Date(),
+      };
+
+      // Retornar el nuevo proyecto creado
+      return { success: true, project: newProject };
+    } catch (error) {
+      return { success: false, error: error.errors || "Error desconocido" };
     }
   };
 
