@@ -65,7 +65,24 @@ export default function DemoPage() {
 
               <textarea {...register("project_description")} id="description" />
 
-              <input type="number" {...register("payment")} id="" />
+              <input type="checkbox" {...register("status")} id="status" />
+              <input
+                type="date"
+                {...register("initial_date")}
+                id="initial_date"
+              />
+              <input
+                type="date"
+                {...register("finish_date")}
+                id="finish_date"
+              />
+              <input type="number" {...register("payment")} id="payment" />
+              <input
+                type="number"
+                {...register("pre_payment")}
+                id="pre_payment"
+              />
+
               <button type="submit">Send</button>
             </form>
           </div>
