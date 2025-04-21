@@ -1,195 +1,439 @@
-"use client";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { IoMailSharp } from "react-icons/io5";
-import { RiLockPasswordFill } from "react-icons/ri";
-import { AlertTriangle } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { z } from "zod";
-import Loader from "./components/Loader/Loader";
-import { prisma } from "@/lib/prisma";
-import { Project } from "@prisma/client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  CalendarDays,
+  Clock,
+  CreditCard,
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  CheckSquare,
+} from "lucide-react";
+import Link from "next/link";
+import { DashboardHeader } from "@/components/dashboard-header";
+import { MobileNav } from "@/components/mobile-nav";
+import { ProjectsOverview } from "@/components/projects-overview";
+import { RecentInvoices } from "@/components/recent-invoices";
+import { TasksOverview } from "@/components/tasks-overview";
 
 export default function Home() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [formData, setFormdata] = useState({ email: "", password: "" });
-  const [errors, setErrors] = useState({ email: "", password: "" });
-  const [alert, setAlert] = useState({
-    message: "",
-    type: "",
-    description: "",
-  });
-
-  const loginSchema = z.object({
-    email: z.string().email("Email invalido"),
-    password: z
-      .string()
-      .min(5, "Contraseña Invalida")
-      .max(50, "Contraseña Invalida"),
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormdata({ ...formData, [e?.target?.name]: e?.target?.value });
-    if (formData.email === "" || formData.password === "") {
-    }
-  };
-
-  const handleOnSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      loginSchema.parse(formData);
-      console.log("Formulario valido");
-      setErrors({ email: "", password: "" });
-
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-        credentials: "same-origin",
-      });
-
-      if (response.ok) {
-        setMessage("Iniciando sesión...");
-        setIsLoading(true);
-
-        setTimeout(() => {
-          setAlert({ message: "", type: "", description: "" });
-          router.push("/dashboard");
-        }, 3000);
-      } else {
-        setAlert({
-          message: "Error al iniciar sesion",
-          type: "error",
-          description: "Los datos ingresados son incorrectos",
-        });
-        setTimeout(() => {
-          setAlert({ message: "", type: "", description: "" });
-        }, 3000);
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: { email: string; password: string } = {
-          email: "",
-          password: "",
-        };
-        error.errors.forEach((err) => {
-          fieldErrors[err.path[0] as keyof typeof fieldErrors] = err.message;
-        });
-        setErrors(fieldErrors);
-      }
-    }
-  };
-
-  const createProject = async (formData: FormData) => {
-    "use server";
-    try {
-      const data = {
-        name: formData.get("name"),
-        description: formData.get("description") || undefined,
-      };
-
-      const validatedData = projectScheme.parse(data);
-
-      // Simulación de creación en base de datos (reemplazar con lógica real)
-      const newProject: Project = {
-        id: crypto.randomUUID(),
-        name: validatedData.name,
-        description: validatedData.description,
-        createdAt: new Date(),
-      };
-
-      // Retornar el nuevo proyecto creado
-      return { success: true, project: newProject };
-    } catch (error) {
-      return { success: false, error: error.errors || "Error desconocido" };
-    }
-  };
-
   return (
-    <>
-      <div className="h-screen flex flex-col items-center bg-[#d9d9d9] py-20">
-        <div className="absolute bottom-0  right-0 w-36 full h-36 bg-blue-500 rounded-tl-full" />
-        <div>
-          <h1 className="text-4xl font-bold text-[#4C417D]">Administra</h1>
-          <p className="italic text-md ml-2">by Samuel Aragon</p>
-        </div>
-        <form
-          className="flex flex-col items-center mt-40"
-          onSubmit={handleOnSubmit}
-        >
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-col">
-              <p className="ml-2 font-bold">Email</p>
-              <div className="relative w-full max-w-xs">
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="email@email.com"
-                  value={formData?.email}
-                  onChange={handleChange}
-                  className="py-2 pl-10 pr-4 bg-white rounded-md w-full h-[55px] placeholder:text-gray-600 shadow-md font-bold focus:outline-none "
-                />
-                <IoMailSharp
-                  className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500"
-                  size={18}
-                />
-              </div>
-              {errors.email && (
-                <span className="text-red-500 text-center">{errors.email}</span>
-              )}
-            </div>
-            <div className="flex flex-col">
-              <p className="ml-2 font-bold">Contrasena</p>
-              <div className="relative w-full max-w-xs">
-                <input
-                  name="password"
-                  type="password"
-                  placeholder="********"
-                  onChange={handleChange}
-                  value={formData?.password}
-                  className="w-full py-2 pl-10 pr-4 bg-white rounded-md  h-[55px] placeholder:text-gray-600 shadow-md font-bold focus:outline-none text-xl"
-                />
-                <RiLockPasswordFill
-                  className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500"
-                  size={18}
-                />
-              </div>
-
-              {errors.password && (
-                <span className="text-red-500 text-center">
-                  {errors.password}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="w-full flex items-center justify-center">
-            <button
-              className="bg-[#255B30] font-semibold h-12 w-full rounded-full text-gray-200 shadow-sm shadow-black border-2 border-green-950 mt-12 hover:scale-110 duration-300 active:scale-105"
-              type="submit"
+    <div className="flex min-h-screen flex-col">
+      <DashboardHeader />
+      <div className="flex flex-1">
+        <aside className="hidden w-64 flex-col border-r bg-muted/40 lg:flex">
+          <nav className="grid gap-2 p-4">
+            <Link
+              href="#"
+              className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-primary-foreground"
             >
-              INGRESAR
-            </button>
+              <LayoutDashboard className="h-5 w-5" />
+              Dashboard
+            </Link>
+            <Link
+              href="/projects"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <Briefcase className="h-5 w-5" />
+              Proyectos
+            </Link>
+            <Link
+              href="/clients"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <Users className="h-5 w-5" />
+              Clientes
+            </Link>
+            <Link
+              href="/tasks"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <CheckSquare className="h-5 w-5" />
+              Tareas
+            </Link>
+            <Link
+              href="/invoices"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <CreditCard className="h-5 w-5" />
+              Facturación
+            </Link>
+            <Link
+              href="/time"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <Clock className="h-5 w-5" />
+              Tiempo
+            </Link>
+            <Link
+              href="/calendar"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+            >
+              <CalendarDays className="h-5 w-5" />
+              Calendario
+            </Link>
+          </nav>
+        </aside>
+        <main className="flex-1 p-4 md:p-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Proyectos Activos
+                </CardTitle>
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">4</div>
+                <p className="text-xs text-muted-foreground">+2 este mes</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Tareas Pendientes
+                </CardTitle>
+                <CheckSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">12</div>
+                <p className="text-xs text-muted-foreground">
+                  6 con vencimiento próximo
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Ingresos Mensuales
+                </CardTitle>
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$4,250</div>
+                <p className="text-xs text-muted-foreground">
+                  +20% respecto al mes anterior
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Horas Registradas
+                </CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">120h</div>
+                <p className="text-xs text-muted-foreground">32h esta semana</p>
+              </CardContent>
+            </Card>
           </div>
-        </form>
-        {alert.message && (
-          <div className="lg:absolute lg:right-2 lg:bottom-2 w-full p-2 lg:w-fit lg:p-0">
-            <Alert variant={"default"}>
-              <AlertTriangle size={20} color="red" />
-              <AlertTitle className="lg:text-xl font-bold text-red-500">
-                {alert.message}
-              </AlertTitle>
-              <AlertDescription className="lg:text-lg text-red-500">
-                {alert.description}
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
+          <Tabs defaultValue="overview" className="mt-6">
+            <TabsList>
+              <TabsTrigger value="overview">Resumen</TabsTrigger>
+              <TabsTrigger value="projects">Proyectos</TabsTrigger>
+              <TabsTrigger value="tasks">Tareas</TabsTrigger>
+              <TabsTrigger value="invoices">Facturas</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview" className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="lg:col-span-4">
+                  <CardHeader>
+                    <CardTitle>Proyectos Recientes</CardTitle>
+                    <CardDescription>
+                      Resumen de tus proyectos activos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ProjectsOverview />
+                  </CardContent>
+                </Card>
+                <Card className="lg:col-span-3">
+                  <CardHeader>
+                    <CardTitle>Tareas Pendientes</CardTitle>
+                    <CardDescription>
+                      Tareas con vencimiento próximo
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <TasksOverview />
+                  </CardContent>
+                </Card>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Facturas Recientes</CardTitle>
+                  <CardDescription>Historial de facturación</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RecentInvoices />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="projects" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Todos los Proyectos</CardTitle>
+                  <CardDescription>
+                    Gestiona todos tus proyectos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-end mb-4">
+                    <Button>Nuevo Proyecto</Button>
+                  </div>
+                  <div className="rounded-md border">
+                    <div className="grid grid-cols-5 gap-4 p-4 font-medium">
+                      <div>Nombre</div>
+                      <div>Cliente</div>
+                      <div>Estado</div>
+                      <div>Fecha límite</div>
+                      <div>Acciones</div>
+                    </div>
+                    <div className="divide-y">
+                      {[
+                        {
+                          name: "Rediseño Web",
+                          client: "Acme Inc",
+                          status: "En progreso",
+                          deadline: "15 Mayo 2025",
+                        },
+                        {
+                          name: "App Móvil",
+                          client: "TechCorp",
+                          status: "Planificación",
+                          deadline: "30 Junio 2025",
+                        },
+                        {
+                          name: "Campaña Marketing",
+                          client: "GlobalBiz",
+                          status: "En progreso",
+                          deadline: "22 Mayo 2025",
+                        },
+                        {
+                          name: "Tienda Online",
+                          client: "LocalShop",
+                          status: "Revisión",
+                          deadline: "10 Mayo 2025",
+                        },
+                      ].map((project, i) => (
+                        <div
+                          key={i}
+                          className="grid grid-cols-5 gap-4 p-4 items-center"
+                        >
+                          <div className="font-medium">{project.name}</div>
+                          <div>{project.client}</div>
+                          <div>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                project.status === "En progreso"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : project.status === "Planificación"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                              }`}
+                            >
+                              {project.status}
+                            </span>
+                          </div>
+                          <div>{project.deadline}</div>
+                          <div>
+                            <Button variant="ghost" size="sm">
+                              Ver
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              Editar
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="tasks" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Todas las Tareas</CardTitle>
+                  <CardDescription>
+                    Gestiona tus tareas pendientes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-end mb-4">
+                    <Button>Nueva Tarea</Button>
+                  </div>
+                  <div className="rounded-md border">
+                    <div className="grid grid-cols-5 gap-4 p-4 font-medium">
+                      <div>Tarea</div>
+                      <div>Proyecto</div>
+                      <div>Prioridad</div>
+                      <div>Fecha límite</div>
+                      <div>Acciones</div>
+                    </div>
+                    <div className="divide-y">
+                      {[
+                        {
+                          name: "Diseñar página de inicio",
+                          project: "Rediseño Web",
+                          priority: "Alta",
+                          deadline: "10 Mayo 2025",
+                        },
+                        {
+                          name: "Implementar autenticación",
+                          project: "App Móvil",
+                          priority: "Media",
+                          deadline: "15 Mayo 2025",
+                        },
+                        {
+                          name: "Crear contenido para redes",
+                          project: "Campaña Marketing",
+                          priority: "Alta",
+                          deadline: "8 Mayo 2025",
+                        },
+                        {
+                          name: "Configurar pasarela de pago",
+                          project: "Tienda Online",
+                          priority: "Alta",
+                          deadline: "5 Mayo 2025",
+                        },
+                      ].map((task, i) => (
+                        <div
+                          key={i}
+                          className="grid grid-cols-5 gap-4 p-4 items-center"
+                        >
+                          <div className="font-medium">{task.name}</div>
+                          <div>{task.project}</div>
+                          <div>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                task.priority === "Alta"
+                                  ? "bg-red-100 text-red-800"
+                                  : task.priority === "Media"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-green-100 text-green-800"
+                              }`}
+                            >
+                              {task.priority}
+                            </span>
+                          </div>
+                          <div>{task.deadline}</div>
+                          <div>
+                            <Button variant="ghost" size="sm">
+                              Completar
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              Editar
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="invoices" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Todas las Facturas</CardTitle>
+                  <CardDescription>
+                    Gestiona tus facturas y pagos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-end mb-4">
+                    <Button>Nueva Factura</Button>
+                  </div>
+                  <div className="rounded-md border">
+                    <div className="grid grid-cols-6 gap-4 p-4 font-medium">
+                      <div>Nº Factura</div>
+                      <div>Cliente</div>
+                      <div>Fecha</div>
+                      <div>Monto</div>
+                      <div>Estado</div>
+                      <div>Acciones</div>
+                    </div>
+                    <div className="divide-y">
+                      {[
+                        {
+                          id: "INV-001",
+                          client: "Acme Inc",
+                          date: "01 Abril 2025",
+                          amount: "$1,200",
+                          status: "Pagada",
+                        },
+                        {
+                          id: "INV-002",
+                          client: "TechCorp",
+                          date: "15 Abril 2025",
+                          amount: "$850",
+                          status: "Pendiente",
+                        },
+                        {
+                          id: "INV-003",
+                          client: "GlobalBiz",
+                          date: "22 Abril 2025",
+                          amount: "$1,500",
+                          status: "Pagada",
+                        },
+                        {
+                          id: "INV-004",
+                          client: "LocalShop",
+                          date: "30 Abril 2025",
+                          amount: "$700",
+                          status: "Vencida",
+                        },
+                      ].map((invoice, i) => (
+                        <div
+                          key={i}
+                          className="grid grid-cols-6 gap-4 p-4 items-center"
+                        >
+                          <div className="font-medium">{invoice.id}</div>
+                          <div>{invoice.client}</div>
+                          <div>{invoice.date}</div>
+                          <div>{invoice.amount}</div>
+                          <div>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                invoice.status === "Pagada"
+                                  ? "bg-green-100 text-green-800"
+                                  : invoice.status === "Pendiente"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {invoice.status}
+                            </span>
+                          </div>
+                          <div>
+                            <Button variant="ghost" size="sm">
+                              Ver
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              Descargar
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </main>
       </div>
-      <Loader isLoading={isLoading} message={message} />
-    </>
+      <MobileNav />
+    </div>
   );
 }
