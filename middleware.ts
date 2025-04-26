@@ -1,42 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const token = req.cookies.get("auth_token")?.value;
+// Rutas que no requieren autenticación
+const publicRoutes = ["/login"];
 
-  if (req.nextUrl.pathname === "/") {
-    if (token) {
-      try {
-        await jwtVerify(
-          token,
-          new TextEncoder().encode(process.env.JWT_SECRET!)
-        );
-        return NextResponse.redirect(new URL("/dashboard", req.url));
-      } catch (error) {
-        console.error("Error al verificar token:", error);
-        const response = NextResponse.next();
-        response.cookies.delete("auth_token");
-        return response;
-      }
-    }
-    return NextResponse.next();
+export function middleware(request: NextRequest) {
+  // Verificar si la ruta actual es pública
+  const isPublicRoute = publicRoutes.some(
+    (route) =>
+      request.nextUrl.pathname === route ||
+      request.nextUrl.pathname.startsWith(`${route}/`)
+  );
+
+  // Verificar si hay una cookie de sesión
+  const isLoggedIn = request.cookies.has("auth");
+
+  // Si es una ruta pública y el usuario está logueado, redirigir al dashboard
+  if (isPublicRoute && isLoggedIn) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (!token) {
-    return NextResponse.redirect(new URL("/", req.url));
+  // Si no es una ruta pública y el usuario no está logueado, redirigir al login
+  if (!isPublicRoute && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  try {
-    await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET!));
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Error al verificar token:", error);
-    const response = NextResponse.redirect(new URL("/", req.url));
-    response.cookies.delete("auth_token");
-    return response;
-  }
+  return NextResponse.next();
 }
 
+// Configurar en qué rutas se ejecutará el middleware
 export const config = {
-  matcher: ["/projects", "/dashboard/:path*", "/dashboard", "/metrics/:path*"],
+  matcher: [
+    /*
+     * Coincide con todas las rutas excepto:
+     * 1. /api (rutas API)
+     * 2. /_next (archivos internos de Next.js)
+     * 3. /_static (si usas Vercel para servir archivos estáticos)
+     * 4. /favicon.ico, /manifest.json, etc.
+     */
+    "/((?!api|_next|_static|_vercel|[\\w-]+\\.\\w+).*)",
+  ],
 };

@@ -7,80 +7,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  CalendarDays,
-  Clock,
-  CreditCard,
-  LayoutDashboard,
-  Users,
-  Briefcase,
-  CheckSquare,
-} from "lucide-react";
-import Link from "next/link";
+import { Clock, CreditCard, Briefcase, CheckSquare } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { ProjectsOverview } from "@/components/projects-overview";
 import { RecentInvoices } from "@/components/recent-invoices";
 import { TasksOverview } from "@/components/tasks-overview";
+// import { RegisterSW } from "./register-sw";
+import { Sidebar } from "@/components/sidebar";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
+      {/* <RegisterSW /> */}
       <DashboardHeader />
       <div className="flex flex-1">
-        <aside className="hidden w-64 flex-col border-r bg-muted/40 lg:flex">
-          <nav className="grid gap-2 p-4">
-            <Link
-              href="#"
-              className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-primary-foreground"
-            >
-              <LayoutDashboard className="h-5 w-5" />
-              Dashboard
-            </Link>
-            <Link
-              href="/projects"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Briefcase className="h-5 w-5" />
-              Proyectos
-            </Link>
-            <Link
-              href="/clients"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Users className="h-5 w-5" />
-              Clientes
-            </Link>
-            <Link
-              href="/tasks"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <CheckSquare className="h-5 w-5" />
-              Tareas
-            </Link>
-            <Link
-              href="/invoices"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <CreditCard className="h-5 w-5" />
-              Facturación
-            </Link>
-            <Link
-              href="/time"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Clock className="h-5 w-5" />
-              Tiempo
-            </Link>
-            <Link
-              href="/calendar"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <CalendarDays className="h-5 w-5" />
-              Calendario
-            </Link>
-          </nav>
-        </aside>
+        <Sidebar />
         <main className="flex-1 p-4 md:p-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>

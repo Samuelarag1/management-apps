@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bell, Menu, Search, User } from "lucide-react";
+import { Bell, Menu, Search, User, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+// import { useAuth } from "@/components/auth-provider";
 
 export function DashboardHeader() {
   const [showSearch, setShowSearch] = useState(false);
+  // const { user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -66,14 +68,22 @@ export function DashboardHeader() {
             <span className="sr-only">Perfil</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+        {/* <DropdownMenuContent align="end">
+          <DropdownMenuLabel>
+            {user?.name || "Mi cuenta"}
+            <div className="text-xs font-normal text-muted-foreground">
+              {user?.email}
+            </div>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Perfil</DropdownMenuItem>
           <DropdownMenuItem>Configuración</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Cerrar sesión</DropdownMenuItem>
-        </DropdownMenuContent>
+          <DropdownMenuItem onClick={logout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Cerrar sesión
+          </DropdownMenuItem>
+        </DropdownMenuContent> */}
       </DropdownMenu>
     </header>
   );
