@@ -23,31 +23,33 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+    // e.preventDefault();
+    // setLoading(true);
+    // setError("");
 
-    // Usuario hardcodeado
-    const validEmail = "samuelaragon@admin.com";
-    const validPassword = "admin12345";
+    // // Usuario hardcodeado
+    // const validEmail = "samuelaragon@admin.com";
+    // const validPassword = "admin12345";
 
-    // Simulamos un pequeño retraso para dar sensación de procesamiento
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // // Simulamos un pequeño retraso para dar sensación de procesamiento
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    if (email == validEmail && password == validPassword) {
-      // Guardar la sesión en localStorage
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ email, name: "Samuel Aragón" })
-      );
-      setLoading(false);
-      router.push("/");
-    } else {
-      setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
-    }
+    // if (email == validEmail && password == validPassword) {
+    //   // Guardar la sesión en localStorage
+    //   console.log("object");
+    //   localStorage.setItem("isLoggedIn", "true");
+    //   localStorage.setItem(
+    //     "user",
+    //     JSON.stringify({ email, name: "Samuel Aragón" })
+    //   );
+    //   setLoading(false);
+    //   router.push("/");
+    // } else {
+    //   setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
+    // }
 
-    setLoading(false);
+    // setLoading(false);
+    router.push("/");
   };
 
   return (

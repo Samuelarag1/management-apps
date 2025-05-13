@@ -65,8 +65,8 @@ export default function PerfilPage() {
                   <CardContent className="space-y-6">
                     <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
                       <Avatar className="h-24 w-24">
-                        <AvatarImage src="/placeholder.svg?height=96&width=96" />
-                        <AvatarFallback>JP</AvatarFallback>
+                        <AvatarImage src="/profile.png" />
+                        <AvatarFallback>SA</AvatarFallback>
                       </Avatar>
                       <div className="space-y-2">
                         <h3 className="text-lg font-medium">Foto de Perfil</h3>
