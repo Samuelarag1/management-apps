@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
+// import { Calendar } from "@/components/ui/calendar";
 import { Play, Pause, Clock, CalendarIcon, BarChart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -216,7 +216,7 @@ export default function TiempoPage() {
                   <CardContent>
                     <div className="flex flex-col gap-4 sm:flex-row">
                       <div className="w-full sm:w-auto">
-                        <Calendar mode="single" className="rounded-md border" />
+                        {/* <Calendar mode="single" className="rounded-md border" /> */}
                       </div>
                       <div className="flex-1">
                         <TimeEntryList />

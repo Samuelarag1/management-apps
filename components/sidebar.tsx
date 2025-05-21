@@ -8,6 +8,7 @@ import {
   Clock,
   CalendarDays,
   Settings,
+  Briefcase,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -24,6 +25,15 @@ export function Sidebar() {
         >
           <LayoutDashboard className="h-5 w-5" />
           <span>Dashboard</span>
+        </Link>
+        <Link
+          href="/projects"
+          className={`flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground ${
+            path == "/projects" ? "text-primary" : "text-muted-foreground"
+          }`}
+        >
+          <Briefcase className="h-5 w-5" />
+          <span>Proyectos</span>
         </Link>
         <Link
           href="/clients"

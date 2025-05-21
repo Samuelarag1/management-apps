@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,29 +13,39 @@ enum Role {
 }
 
 model Project {
-  id            String  @id @default(uuid())
-  name          String
-  price         Decimal
-  description   String?
-  pre_payment   String?
-  finish_date   String
-  status        String
-  initial_date  String
-  hosting       String?
-  cloud_storage String?
-  domain        String?
+  id                 String    @id @default(uuid())
+  name               String
+  price              Decimal
+  description        String?
+  pre_payment        String?
+  finish_date        String
+  status             String
+  initial_date       DateTime? @default(now())
+  hosting            String?
+  domain             String?
+  cloud_storage      Boolean?
+  cloud_storage_date DateTime?
 
-  user   User? @relation(fields: [userId], references: [id])
-  userId Int?
+  Clients   Clients? @relation(fields: [clientsId], references: [id])
+  clientsId Int?
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String?
-  email     String    @unique
-  password  String
-  role      Role      @default(USER)
-  projects  Project[]
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+  id       Int     @id @default(autoincrement())
+  name     String?
+  email    String  @unique
+  password String
+  role     Role    @default(USER)
+}
+
+model Clients {
+  id           Int     @id @default(autoincrement())
+  name         String
+  alias        String
+  status       String  @default("Activo")
+  email        String  @unique
+  phone_number String?
+  location     String?
+
+  projects Project[]
 }
