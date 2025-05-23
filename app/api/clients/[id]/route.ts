@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   req: Request,
-  context: { params: { id: string } } // ✅ mantener el contexto completo
+  context: { params: { id: string } }
 ) {
   const prisma = new PrismaClient();
   const { id } = context.params;

@@ -1,4 +1,3 @@
-// app/api/clients/route.ts
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -20,7 +19,6 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-  // console.log("POST recibido", body);
 }
 
 export async function GET() {
