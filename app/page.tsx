@@ -19,7 +19,6 @@ import { Sidebar } from "@/components/sidebar";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* <RegisterSW /> */}
       <DashboardHeader />
       <div className="flex flex-1">
         <Sidebar />
