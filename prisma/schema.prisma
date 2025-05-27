@@ -17,12 +17,12 @@ model Project {
   name               String
   price              Decimal
   description        String?
-  pre_payment        String?
-  finish_date        String
+  pre_payment        Decimal?
+  finish_date        DateTime?
   status             String
   initial_date       DateTime? @default(now())
-  hosting            String?
-  domain             String?
+  hosting            DateTime?
+  domain             DateTime?
   cloud_storage      Boolean?
   cloud_storage_date DateTime?
 

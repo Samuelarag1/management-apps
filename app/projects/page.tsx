@@ -1,28 +1,16 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { Sidebar } from "@/components/sidebar";
-import { Input } from "@/components/ui/input";
-import { Search, Plus, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import ProjectCardList from "./components/projectCards";
+import { useEffect, useState } from "react";
+import IMProjects from "@/Models/Projects";
 
 export default function ProyectosPage() {
+  const [projects, setProjects] = useState<IMProjects[]>();
   const proyectos = [
     {
       id: 1,
@@ -86,6 +74,13 @@ export default function ProyectosPage() {
     },
   ];
 
+  useEffect(() => {
+    fetch("api/projects")
+      .then((res) => res.json())
+      .then((data) => setProjects(data));
+  }, []);
+
+  console.log(projects);
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader />
@@ -101,14 +96,6 @@ export default function ProyectosPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar proyecto..."
-                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
-                  />
-                </div>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   Nuevo Proyecto
@@ -122,264 +109,29 @@ export default function ProyectosPage() {
                 <TabsTrigger value="activos">Activos</TabsTrigger>
                 <TabsTrigger value="completados">Completados</TabsTrigger>
               </TabsList>
-              <TabsContent value="todos" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Todos los Proyectos</CardTitle>
-                    <CardDescription>
-                      Lista de todos tus proyectos y su estado actual
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="grid grid-cols-7 gap-4 p-4 font-medium">
-                        <div className="col-span-2">Proyecto</div>
-                        <div>Cliente</div>
-                        <div>Estado</div>
-                        <div>Fecha Límite</div>
-                        <div>Progreso</div>
-                        <div>Acciones</div>
-                      </div>
-                      <div className="divide-y">
-                        {proyectos.map((proyecto) => (
-                          <div
-                            key={proyecto.id}
-                            className="grid grid-cols-7 gap-4 p-4 items-center"
-                          >
-                            <div className="col-span-2">
-                              <div className="font-medium">
-                                {proyecto.nombre}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {proyecto.tareasCompletadas} de{" "}
-                                {proyecto.tareas} tareas completadas
-                              </div>
-                            </div>
-                            <div>{proyecto.cliente}</div>
-                            <div>
-                              <Badge
-                                variant={
-                                  proyecto.estado === "Completado"
-                                    ? "outline"
-                                    : proyecto.estado === "En progreso"
-                                    ? "default"
-                                    : proyecto.estado === "Planificación"
-                                    ? "secondary"
-                                    : "destructive"
-                                }
-                              >
-                                {proyecto.estado}
-                              </Badge>
-                            </div>
-                            <div>{proyecto.fechaFin}</div>
-                            <div className="flex items-center gap-2">
-                              <Progress
-                                value={proyecto.progreso}
-                                className="h-2"
-                              />
-                              <span className="text-sm font-medium">
-                                {proyecto.progreso}%
-                              </span>
-                            </div>
-                            <div>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Acciones</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
-                                    Ver detalles
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    Editar proyecto
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    Ver tareas
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive">
-                                    Eliminar proyecto
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              <TabsContent value="todos">
+                <ProjectCardList
+                  titulo="Todos los Proyectos"
+                  descripcion="Lista de todos tus proyectos y su estado actual"
+                  proyectos={projects!}
+                  key={0}
+                />
               </TabsContent>
-              <TabsContent value="activos" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Proyectos Activos</CardTitle>
-                    <CardDescription>
-                      Proyectos en curso y planificación
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="grid grid-cols-7 gap-4 p-4 font-medium">
-                        <div className="col-span-2">Proyecto</div>
-                        <div>Cliente</div>
-                        <div>Estado</div>
-                        <div>Fecha Límite</div>
-                        <div>Progreso</div>
-                        <div>Acciones</div>
-                      </div>
-                      <div className="divide-y">
-                        {proyectos
-                          .filter(
-                            (proyecto) => proyecto.estado !== "Completado"
-                          )
-                          .map((proyecto) => (
-                            <div
-                              key={proyecto.id}
-                              className="grid grid-cols-7 gap-4 p-4 items-center"
-                            >
-                              <div className="col-span-2">
-                                <div className="font-medium">
-                                  {proyecto.nombre}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {proyecto.tareasCompletadas} de{" "}
-                                  {proyecto.tareas} tareas completadas
-                                </div>
-                              </div>
-                              <div>{proyecto.cliente}</div>
-                              <div>
-                                <Badge
-                                  variant={
-                                    proyecto.estado === "En progreso"
-                                      ? "default"
-                                      : proyecto.estado === "Planificación"
-                                      ? "secondary"
-                                      : "destructive"
-                                  }
-                                >
-                                  {proyecto.estado}
-                                </Badge>
-                              </div>
-                              <div>{proyecto.fechaFin}</div>
-                              <div className="flex items-center gap-2">
-                                <Progress
-                                  value={proyecto.progreso}
-                                  className="h-2"
-                                />
-                                <span className="text-sm font-medium">
-                                  {proyecto.progreso}%
-                                </span>
-                              </div>
-                              <div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">Acciones</span>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                      Ver detalles
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      Editar proyecto
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      Ver tareas
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                      Eliminar proyecto
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              <TabsContent value="activos">
+                <ProjectCardList
+                  titulo="Proyectos Activos"
+                  descripcion="Proyectos en curso y planificación"
+                  proyectos={[]}
+                  key={1}
+                />
               </TabsContent>
-              <TabsContent value="completados" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Proyectos Completados</CardTitle>
-                    <CardDescription>Proyectos finalizados</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="grid grid-cols-7 gap-4 p-4 font-medium">
-                        <div className="col-span-2">Proyecto</div>
-                        <div>Cliente</div>
-                        <div>Estado</div>
-                        <div>Fecha Finalización</div>
-                        <div>Presupuesto</div>
-                        <div>Acciones</div>
-                      </div>
-                      <div className="divide-y">
-                        {proyectos
-                          .filter(
-                            (proyecto) => proyecto.estado === "Completado"
-                          )
-                          .map((proyecto) => (
-                            <div
-                              key={proyecto.id}
-                              className="grid grid-cols-7 gap-4 p-4 items-center"
-                            >
-                              <div className="col-span-2">
-                                <div className="font-medium">
-                                  {proyecto.nombre}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {proyecto.tareasCompletadas} de{" "}
-                                  {proyecto.tareas} tareas completadas
-                                </div>
-                              </div>
-                              <div>{proyecto.cliente}</div>
-                              <div>
-                                <Badge variant="outline">
-                                  {proyecto.estado}
-                                </Badge>
-                              </div>
-                              <div>{proyecto.fechaFin}</div>
-                              <div>{proyecto.presupuesto}</div>
-                              <div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">Acciones</span>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                      Ver detalles
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      Duplicar proyecto
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      Generar informe
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                      Archivar proyecto
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              <TabsContent value="completados">
+                <ProjectCardList
+                  titulo="Proyectos Completados"
+                  descripcion="Proyectos finalizados"
+                  proyectos={[]}
+                  key={2}
+                />
               </TabsContent>
             </Tabs>
           </div>

@@ -1,3 +1,5 @@
+import IMClients from "./Clients";
+
 export default interface IMProjects {
   id: string;
   name: string;
@@ -11,4 +13,6 @@ export default interface IMProjects {
   domain: string;
   cloud_storage?: boolean;
   cloud_storage_date?: string;
+  userId: number;
+  Clients?: IMClients;
 }
