@@ -26,10 +26,12 @@ import { useEffect, useState } from "react";
 import IMClients from "@/Models/Clients";
 import { Skeleton } from "@/components/ui/skeleton";
 import SpinnerOverlay from "@/components/spinner-overlay";
+import { ClientModal } from "./components/userDetails";
 
 export default function ClientesPage() {
   const [clients, setClients] = useState<IMClients[]>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [clientDetail, setClientDetail] = useState<IMClients>();
 
   useEffect(() => {
     fetch("/api/clients")
@@ -53,6 +55,12 @@ export default function ClientesPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewDetails = async (id: number) => {
+    await fetch(`/api/clients/${id}`)
+      .then((res) => res.json())
+      .then((data) => setClientDetail(data));
   };
 
   return (
@@ -177,7 +185,11 @@ export default function ClientesPage() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleViewDetails(cliente.id)
+                                    }
+                                  >
                                     Ver detalles
                                   </DropdownMenuItem>
                                   <DropdownMenuItem>
@@ -209,6 +221,24 @@ export default function ClientesPage() {
         <MobileNav />
       </div>
       {loading ? <SpinnerOverlay /> : null}
+
+      {/* {clientDetail ? (
+        <>
+          {" "}
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+            <Card>
+              <CardContent>
+                <CardHeader>Detalle de {clientDetail.name}</CardHeader>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      ) : null} */}
+
+      <ClientModal
+        clientDetail={clientDetail}
+        setClientDetail={setClientDetail}
+      />
     </>
   );
 }
