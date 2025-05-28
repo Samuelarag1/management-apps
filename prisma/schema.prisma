@@ -12,15 +12,22 @@ enum Role {
   ADMIN
 }
 
+enum Status {
+  ACTIVE
+  COMPLETE
+  DISCONTINUED
+}
+
 model Project {
-  id                 String    @id @default(uuid())
-  name               String
-  price              Decimal
+  id           String    @id @default(uuid())
+  name         String
+  price        Decimal
+  initial_date DateTime?
+  finish_date  DateTime?
+  pre_payment  Decimal?
+  status       Status
+
   description        String?
-  pre_payment        Decimal?
-  finish_date        DateTime?
-  status             String
-  initial_date       DateTime? @default(now())
   hosting            DateTime?
   domain             DateTime?
   cloud_storage      Boolean?
