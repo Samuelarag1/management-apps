@@ -13,9 +13,9 @@ enum Role {
 }
 
 enum Status {
-  ACTIVE
-  COMPLETE
-  DISCONTINUED
+  active
+  complete
+  discontinued
 }
 
 model Project {
@@ -25,7 +25,7 @@ model Project {
   initial_date DateTime?
   finish_date  DateTime?
   pre_payment  Decimal?
-  status       Status
+  status       Status?
 
   description        String?
   hosting            DateTime?
@@ -33,7 +33,7 @@ model Project {
   cloud_storage      Boolean?
   cloud_storage_date DateTime?
 
-  Clients   Clients? @relation(fields: [clientsId], references: [id])
+  client    Clients? @relation(fields: [clientsId], references: [id])
   clientsId Int?
 }
 

@@ -17,6 +17,17 @@ export default function ProyectosPage() {
       .then((data) => setProjects(data));
   }, []);
 
+  const deleteProject = async (projectId: string) => {
+    const res = await fetch(`/api/projects/${projectId}`, {
+      method: "DELETE",
+    });
+    if (res.ok) {
+      setProjects((prev) => prev?.filter((p) => p.id !== projectId.toString()));
+    } else {
+      console.error("Error al eliminar el proyecto");
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader />
@@ -46,23 +57,23 @@ export default function ProyectosPage() {
                   titulo="Todos los Proyectos"
                   descripcion="Lista de todos tus proyectos y su estado actual"
                   proyectos={projects!}
-                  key={0}
+                  onDelete={deleteProject}
                 />
               </TabsContent>
               <TabsContent value="activos">
                 <ProjectCardList
-                  titulo="Proyectos Activos"
-                  descripcion="Proyectos en curso y planificación"
-                  proyectos={[]}
-                  key={1}
+                  titulo="Todos los Proyectos"
+                  descripcion="Lista de todos tus proyectos y su estado actual"
+                  proyectos={projects!}
+                  onDelete={deleteProject}
                 />
               </TabsContent>
               <TabsContent value="completados">
                 <ProjectCardList
-                  titulo="Proyectos Completados"
-                  descripcion="Proyectos finalizados"
-                  proyectos={[]}
-                  key={2}
+                  titulo="Todos los Proyectos"
+                  descripcion="Lista de todos tus proyectos y su estado actual"
+                  proyectos={projects!}
+                  onDelete={deleteProject}
                 />
               </TabsContent>
             </Tabs>

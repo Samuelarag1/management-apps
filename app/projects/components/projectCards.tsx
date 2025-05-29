@@ -24,6 +24,7 @@ interface ProjectCardListProps {
   descripcion: string;
   proyectos: IMProjects[];
   mostrarPresupuesto?: boolean;
+  onDelete?: (id: string) => void;
 }
 
 const ProjectCardList = ({
@@ -31,6 +32,7 @@ const ProjectCardList = ({
   descripcion,
   proyectos,
   mostrarPresupuesto = false,
+  onDelete,
 }: ProjectCardListProps) => (
   <Card>
     <CardHeader>
@@ -178,10 +180,11 @@ const ProjectCardList = ({
                     </>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive">
-                    {mostrarPresupuesto
-                      ? "Archivar proyecto"
-                      : "Eliminar proyecto"}
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => onDelete?.(proyecto.id)}
+                  >
+                    Eliminar proyecto
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

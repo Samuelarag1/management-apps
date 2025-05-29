@@ -21,7 +21,7 @@ const projectSchema = z.object({
 export async function GET() {
   const projects = await prisma.project.findMany({
     include: {
-      Clients: true,
+      client: true,
     },
   });
   return NextResponse.json(projects);
@@ -33,24 +33,46 @@ export async function POST(req: Request) {
 
     const parsedBody = {
       ...body,
+      name: body.name,
       price: Number(body.price),
-      pre_payment: body.pre_payment ? Number(body.pre_payment) : undefined,
-      finish_date: body.finish_date ? new Date(body.finish_date) : undefined,
-      initial_date: body.initial_date ? new Date(body.initial_date) : undefined,
-      hosting: body.hosting ? new Date(body.hosting) : undefined,
-      domain: body.domain ? new Date(body.domain) : undefined,
+      pre_payment: body.pre_payment ? Number(body.pre_payment) : null,
+      finish_date: body.finish_date ? new Date(body.finish_date) : null,
+      initial_date: body.initial_date ? new Date(body.initial_date) : null,
+      hosting: body.hosting ? new Date(body.hosting) : null,
+      domain: body.domain ? new Date(body.domain) : null,
       cloud_storage: Boolean(body.cloud_storage),
       cloud_storage_date: body.cloud_storage_date
         ? new Date(body.cloud_storage_date)
         : undefined,
-      userId: Number(body.userId),
-      clientsId: body.clientsId ? Number(body.clientsId) : undefined,
+      clientsId: body.clientsId ? Number(body.clientsId) : null,
     };
 
-    const projectParsed = projectSchema.parse(parsedBody);
+    const projectData = projectSchema.parse(parsedBody);
 
     const newProject = await prisma.project.create({
-      data: projectParsed,
+      data: {
+        name: projectData.name,
+        price: Number(projectData.price),
+        pre_payment: projectData.pre_payment
+          ? Number(projectData.pre_payment)
+          : null,
+        finish_date: projectData.finish_date
+          ? new Date(projectData.finish_date)
+          : null,
+        initial_date: projectData.initial_date
+          ? new Date(projectData.initial_date)
+          : null,
+        hosting: projectData.hosting ? new Date(projectData.hosting) : null,
+        domain: projectData.domain ? new Date(projectData.domain) : null,
+        cloud_storage: Boolean(projectData.cloud_storage),
+        cloud_storage_date: projectData.cloud_storage_date
+          ? new Date(projectData.cloud_storage_date)
+          : undefined,
+        clientsId: projectData.clientsId ? Number(projectData.clientsId) : null,
+      },
+      include: {
+        client: true,
+      },
     });
 
     return NextResponse.json(newProject, { status: 201 });

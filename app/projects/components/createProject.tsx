@@ -32,13 +32,13 @@ interface IFormInput {
   description: string;
   pre_payment?: string;
   finish_date: string;
-  status: string;
+  status?: string;
   initial_date: string;
   hosting: string;
   domain: string;
   cloud_storage?: boolean;
   cloud_storage_date?: string;
-  userId: number;
+  clientsId: number;
   Clients?: IMClients;
 }
 
@@ -222,20 +222,33 @@ export function ModalProjects() {
                     <Label htmlFor="pre_payment" className="text-right ml-2">
                       Usuario Relacionado
                     </Label>
-                    <Select {...register("userId")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Usuario" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients?.map((client) => (
-                          <>
-                            <SelectItem value={client.id.toString()}>
-                              {client.name}
-                            </SelectItem>
-                          </>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="clientsId"
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          value={field.value?.toString() ?? ""}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {clients?.map((client) => (
+                              <SelectItem
+                                key={client.id}
+                                value={client.id.toString()}
+                              >
+                                {client.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 </div>
 
