@@ -59,7 +59,7 @@ const ProjectCardList = ({
               className="grid grid-cols-8 gap-4 p-4 items-center"
             >
               <div className="col-span-2 font-medium">{proyecto.name}</div>
-              <div>{proyecto.Clients?.name}</div>
+              <div>{proyecto.client?.alias ?? proyecto.client?.name}</div>
               <div>
                 <Badge
                   className={
@@ -128,7 +128,7 @@ const ProjectCardList = ({
             <div className="text-lg font-semibold">{proyecto.name}</div>
             <div>
               <span className="font-medium">Cliente:</span>{" "}
-              {proyecto.Clients?.name}
+              {proyecto.client?.name}
             </div>
             <div>
               <span className="font-medium">Estado:</span>{" "}

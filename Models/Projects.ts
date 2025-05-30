@@ -14,5 +14,5 @@ export default interface IMProjects {
   cloud_storage?: boolean;
   cloud_storage_date?: string;
   userId: number;
-  Clients?: IMClients;
+  client?: IMClients;
 }
