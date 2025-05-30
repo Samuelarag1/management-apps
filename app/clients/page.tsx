@@ -135,13 +135,13 @@ export default function ClientesPage() {
                                   {cliente.alias}
                                 </h3>
                                 <Badge
-                                  variant={
+                                  className={`mt-0 mb-2 ${
                                     cliente.status === "Activo"
-                                      ? "default"
+                                      ? "bg-green-800"
                                       : cliente.status === "Inactivo"
                                       ? "secondary"
                                       : "outline"
-                                  }
+                                  }`}
                                 >
                                   {cliente.status}
                                 </Badge>
@@ -221,20 +221,6 @@ export default function ClientesPage() {
         <MobileNav />
       </div>
       {loading ? <SpinnerOverlay /> : null}
-
-      {/* {clientDetail ? (
-        <>
-          {" "}
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
-            <Card>
-              <CardContent>
-                <CardHeader>Detalle de {clientDetail.name}</CardHeader>
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      ) : null} */}
-
       <ClientModal
         clientDetail={clientDetail}
         setClientDetail={setClientDetail}

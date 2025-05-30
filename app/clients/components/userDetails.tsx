@@ -59,14 +59,13 @@ export function ClientModal({
           </CardHeader>
           <CardContent>
             <Badge
-              variant={
+              className={`mt-0 mb-2 ${
                 clientDetail.status === "Activo"
-                  ? "default"
+                  ? "bg-green-800"
                   : clientDetail.status === "Inactivo"
                   ? "secondary"
                   : "outline"
-              }
-              className="mt-0 mb-2"
+              }`}
             >
               {clientDetail.status}
             </Badge>
@@ -97,19 +96,9 @@ export function ClientModal({
               <p>Ubicacion:</p>
               <p className="text-sm font-semibold">{clientDetail.location}</p>
             </div>
-            <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Proyectos:</p>
-
-              <div className="flex items-center">
-                <p className="text-sm font-semibold">
-                  {clientDetail.projects?.length}
-                </p>
-              </div>
-            </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button className="bg-blue-400 hover:bg-blue-500">
+            <Button className="bg-[#7C3AED] hover:bg-[#2f1b50]">
               <Link href="/projects">Proyectos</Link>
             </Button>
             <div className="flex gap-2">

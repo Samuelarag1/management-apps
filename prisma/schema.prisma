@@ -13,9 +13,9 @@ enum Role {
 }
 
 enum Status {
-  active
-  complete
-  discontinued
+  activo
+  completo
+  descontinuado
 }
 
 model Project {

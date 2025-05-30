@@ -37,14 +37,15 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   const prisma = new PrismaClient();
+  const { id } = await context.params;
 
   try {
-    const id = context.params;
-
-    const user = await prisma.clients.findUnique({
+    const user = await prisma.clients.findFirst({
       where: { id: Number(id) },
       include: { projects: true },
     });
+
+    if (!user) throw new Error("No se ecn");
 
     return NextResponse.json(user);
   } catch {

@@ -9,7 +9,7 @@ const projectSchema = z.object({
   description: z.string().optional(),
   pre_payment: z.number().optional(),
   finish_date: z.date().optional(),
-  status: z.string(),
+  status: z.string().optional(),
   initial_date: z.date().optional(),
   hosting: z.date().optional(),
   domain: z.date().optional(),
@@ -35,9 +35,11 @@ export async function POST(req: Request) {
       ...body,
       name: body.name,
       price: Number(body.price),
+      description: body.description ? body.description : null,
       pre_payment: body.pre_payment ? Number(body.pre_payment) : null,
       finish_date: body.finish_date ? new Date(body.finish_date) : null,
       initial_date: body.initial_date ? new Date(body.initial_date) : null,
+      status: body.status ? body.status : null,
       hosting: body.hosting ? new Date(body.hosting) : null,
       domain: body.domain ? new Date(body.domain) : null,
       cloud_storage: Boolean(body.cloud_storage),
@@ -53,15 +55,15 @@ export async function POST(req: Request) {
       data: {
         name: projectData.name,
         price: Number(projectData.price),
-        pre_payment: projectData.pre_payment
-          ? Number(projectData.pre_payment)
-          : null,
+        pre_payment: Number(projectData.pre_payment),
+        description: projectData.description ? projectData.description : null,
         finish_date: projectData.finish_date
           ? new Date(projectData.finish_date)
           : null,
         initial_date: projectData.initial_date
           ? new Date(projectData.initial_date)
           : null,
+        status: projectData.status ? projectData.status : null,
         hosting: projectData.hosting ? new Date(projectData.hosting) : null,
         domain: projectData.domain ? new Date(projectData.domain) : null,
         cloud_storage: Boolean(projectData.cloud_storage),

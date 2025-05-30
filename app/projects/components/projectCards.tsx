@@ -25,6 +25,7 @@ interface ProjectCardListProps {
   proyectos: IMProjects[];
   mostrarPresupuesto?: boolean;
   onDelete?: (id: string) => void;
+  onViewProject?: (id: string) => void;
 }
 
 const ProjectCardList = ({
@@ -33,6 +34,7 @@ const ProjectCardList = ({
   proyectos,
   mostrarPresupuesto = false,
   onDelete,
+  onViewProject,
 }: ProjectCardListProps) => (
   <Card>
     <CardHeader>
@@ -63,16 +65,16 @@ const ProjectCardList = ({
               <div>
                 <Badge
                   className={
-                    proyecto.status === "Completado"
+                    proyecto.status === "complete"
                       ? "bg-green-800 text-white"
-                      : proyecto.status === "En progreso"
+                      : proyecto.status === "active"
                       ? "default"
                       : proyecto.status === "Planificación"
                       ? "secondary"
                       : "destructive"
                   }
                 >
-                  {proyecto.status}
+                  {proyecto.status?.toLocaleUpperCase()}
                 </Badge>
               </div>
               <div>{formatDate(proyecto.finish_date)}</div>
@@ -92,7 +94,11 @@ const ProjectCardList = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Ver detalles</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onViewProject?.(proyecto.id)}
+                    >
+                      Ver detalles
+                    </DropdownMenuItem>
                     {!mostrarPresupuesto ? (
                       <>
                         <DropdownMenuItem>Editar proyecto</DropdownMenuItem>
@@ -134,16 +140,17 @@ const ProjectCardList = ({
               <span className="font-medium">Estado:</span>{" "}
               <Badge
                 className={
-                  proyecto.status === "Completado"
+                  proyecto.status === "completo"
                     ? "bg-green-800 text-white"
-                    : proyecto.status === "En progreso"
+                    : proyecto.status === "activo"
                     ? "default"
-                    : proyecto.status === "Planificación"
-                    ? "secondary"
-                    : "destructive"
+                    : proyecto.status === "descontinuado"
+                    ? "destructive"
+                    : "default"
                 }
               >
-                {proyecto.status}
+                {proyecto.status[0]?.toLocaleUpperCase() +
+                  proyecto.status.slice(1)}
               </Badge>
             </div>
             <div>
@@ -167,7 +174,11 @@ const ProjectCardList = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Ver detalles</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onViewProject?.(proyecto.id)}
+                  >
+                    Ver detalles
+                  </DropdownMenuItem>
                   {!mostrarPresupuesto ? (
                     <>
                       <DropdownMenuItem>Editar proyecto</DropdownMenuItem>

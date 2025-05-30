@@ -8,11 +8,13 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import IMProjects from "@/Models/Projects";
+import { daysUntilNextYear, formatDate } from "@/utils/dateUtils";
+import { formatPrice } from "@/utils/numberUtils";
 import { LucidePencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
-interface ClientModalProps {
+interface ProjectModalProps {
   projectDetail: IMProjects | undefined;
   setProjectDetail: (client: IMProjects | undefined) => void;
 }
@@ -20,7 +22,7 @@ interface ClientModalProps {
 export function ProjectModal({
   projectDetail,
   setProjectDetail,
-}: ClientModalProps) {
+}: ProjectModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,15 +53,15 @@ export function ProjectModal({
     <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
       <div ref={cardRef}>
         <Card className="w-96">
-          <CardHeader>
+          <CardHeader className="font-bold">
             Detalle de {projectDetail.name}
-            <CardDescription>
-              <p>Proyecto de: {projectDetail.client?.name}</p>
+            <CardDescription className="font-semibold">
+              <p>{projectDetail.description}</p>
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Badge
-              className={
+              className={`${
                 projectDetail.status === "completo"
                   ? "bg-green-800 text-white"
                   : projectDetail.status === "activo"
@@ -67,52 +69,70 @@ export function ProjectModal({
                   : projectDetail.status === "descontinuado"
                   ? "destructive"
                   : "default"
-              }
+              } m-2 `}
             >
               {projectDetail.status[0]?.toLocaleUpperCase() +
                 projectDetail.status.slice(1)}
             </Badge>
             <hr />
             <div className="flex w-full items-center justify-between">
-              <p>Nombre:</p>
-              <p className="text-sm font-semibold">{projectDetail.name}</p>
-            </div>
-            <hr />
-            {/* <div className="flex w-full items-center justify-between">
-              <p>Empresa:</p>
-              <p className="text-sm font-semibold">{projectDetail.alias}</p>
-            </div>
-            <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Email:</p>
-              <p className="text-sm font-semibold">{projectDetail.email}</p>
-            </div>
-            <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Numero de telefono:</p>
+              <p>Nombre del cliente:</p>
               <p className="text-sm font-semibold">
-                {projectDetail.phone_number}
+                {projectDetail.client?.name}
               </p>
             </div>
             <hr />
             <div className="flex w-full items-center justify-between">
-              <p>Ubicacion:</p>
-              <p className="text-sm font-semibold">{projectDetail.location}</p>
+              <p>Entrega:</p>
+              <p className="text-sm font-semibold">
+                {formatDate(projectDetail.finish_date)}
+              </p>
             </div>
             <hr />
             <div className="flex w-full items-center justify-between">
-              <p>Proyectos:</p>
+              <p>Renovacion de Dominio:</p>
+              <p className="text-sm font-semibold">
+                en {daysUntilNextYear(projectDetail.domain)} dias
+              </p>
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Renovacion de Hosting:</p>
+              <p className="text-sm font-semibold">
+                en {daysUntilNextYear(projectDetail.hosting)} dias
+              </p>
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Almacenamiento en la nube:</p>
+              <p className="text-sm font-semibold">
+                {projectDetail.cloud_storage === false ? "No" : "Si"}
+              </p>
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Pago anticipado:</p>
 
               <div className="flex items-center">
                 <p className="text-sm font-semibold">
-                  {projectDetail.projects?.length}
+                  {formatPrice(Number(projectDetail.pre_payment))}
                 </p>
               </div>
-            </div> */}
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Precio:</p>
+
+              <div className="flex items-center">
+                <p className="text-sm font-semibold">
+                  {formatPrice(projectDetail.price)}
+                </p>
+              </div>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button className="bg-blue-400 hover:bg-blue-500">
-              <Link href="/projects">Proyectos</Link>
+              <Link href="/tasks">Tareas</Link>
             </Button>
             <div className="flex gap-2">
               <Button className="bg-blue-600 hover:bg-blue-800">

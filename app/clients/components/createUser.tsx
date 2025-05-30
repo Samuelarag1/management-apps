@@ -133,12 +133,7 @@ export function ModalClients({ title, isCreating }: IModalProps) {
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Proyectos</Label>
-              <div className="w-full col-span-3">
-                <p className="text-sm font-light">No hay proyectos asignados</p>
-              </div>
-            </div>
+
             <DialogFooter>
               <Button type="submit" disabled={loading}>
                 {isCreating ? "Crear cliente" : "Guardar cambios"}

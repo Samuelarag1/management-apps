@@ -173,9 +173,9 @@ export function ModalProjects() {
                             <SelectValue placeholder="Estado" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">Activo</SelectItem>
-                            <SelectItem value="complete">Completado</SelectItem>
-                            <SelectItem value="discontinued">
+                            <SelectItem value="activo">Activo</SelectItem>
+                            <SelectItem value="completo">Completado</SelectItem>
+                            <SelectItem value="descontinuado">
                               Discontinuado
                             </SelectItem>
                           </SelectContent>
@@ -213,10 +213,10 @@ export function ModalProjects() {
                 </div>
                 <div className="flex w-full justify-between">
                   <div className="flex flex-col items-start justify-center gap-2 w-40 h-12">
-                    <Label htmlFor="name" className="text-right">
+                    <Label htmlFor="cloud_storage" className="text-right">
                       Cloud Storage
                     </Label>
-                    <Switch {...register("name")} />
+                    <Switch {...register("cloud_storage")} />
                   </div>
                   <div className="flex flex-col items-start gap-2 w-40">
                     <Label htmlFor="pre_payment" className="text-right ml-2">

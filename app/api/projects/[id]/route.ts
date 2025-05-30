@@ -26,3 +26,30 @@ export async function DELETE(
     );
   }
 }
+
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const projectId = (await context.params).id;
+  try {
+    if (!projectId) {
+      return NextResponse.json(
+        { message: "No se encontro este proyecto" },
+        { status: 400 }
+      );
+    }
+
+    const project = await prisma.project.findFirst({
+      where: { id: projectId },
+      include: { client: true },
+    });
+
+    return NextResponse.json(project);
+  } catch {
+    return NextResponse.json(
+      { message: "Error al buscar proyecto" },
+      { status: 400 }
+    );
+  }
+}
