@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import IMProjects from "@/Models/Projects";
 import { ModalProjects } from "./components/createProject";
 import { ProjectModal } from "./components/projectModal";
+import { Button } from "@/components/ui/button";
 
 export default function ProyectosPage() {
   const [projects, setProjects] = useState<IMProjects[]>();
@@ -54,7 +55,10 @@ export default function ProyectosPage() {
                     Gestiona tus proyectos y su progreso
                   </p>
                 </div>
-                <ModalProjects />
+                <ProjectModal
+                  projectDetail={projectDetail}
+                  setProjectDetail={setProjectDetail}
+                />
               </div>
 
               <Tabs defaultValue="todos" className="mt-6">

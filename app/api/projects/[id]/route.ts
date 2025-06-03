@@ -1,17 +1,23 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
-
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const projectId = params?.id;
+  const prisma = new PrismaClient();
+  const projectId = await context.params;
 
   try {
+    if (!projectId || typeof projectId !== "string") {
+      return NextResponse.json(
+        { message: "ID de proyecto inválido" },
+        { status: 400 }
+      );
+    }
+
     const deletedProject = await prisma.project.delete({
-      where: { id: projectId },
+      where: { id: projectId }, // 👈 projectId es string UUID
     });
 
     return NextResponse.json(
@@ -31,6 +37,7 @@ export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const prisma = new PrismaClient();
   const projectId = (await context.params).id;
   try {
     if (!projectId) {
