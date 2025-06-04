@@ -24,10 +24,9 @@ export async function DELETE(
       { message: "Proyecto eliminado correctamente", deletedProject },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error(error);
+  } catch {
     return NextResponse.json(
-      { message: "Error al eliminar el proyecto", error: error.message },
+      { message: "Error al eliminar el proyecto" },
       { status: 500 }
     );
   }

@@ -6,9 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectCardList from "./components/projectCards";
 import { useEffect, useState } from "react";
 import IMProjects from "@/Models/Projects";
-import { ModalProjects } from "./components/createProject";
 import { ProjectModal } from "./components/projectModal";
-import { Button } from "@/components/ui/button";
 
 export default function ProyectosPage() {
   const [projects, setProjects] = useState<IMProjects[]>();

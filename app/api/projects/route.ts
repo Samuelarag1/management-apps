@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Status } from "@prisma/client";
 import { z } from "zod";
 const prisma = new PrismaClient();
 
@@ -9,7 +9,7 @@ const projectSchema = z.object({
   description: z.string().optional(),
   pre_payment: z.number().optional(),
   finish_date: z.date().optional(),
-  status: z.string().optional(),
+  status: z.nativeEnum(Status).optional(),
   initial_date: z.date().optional(),
   hosting: z.date().optional(),
   domain: z.date().optional(),
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       pre_payment: body.pre_payment ? Number(body.pre_payment) : null,
       finish_date: body.finish_date ? new Date(body.finish_date) : null,
       initial_date: body.initial_date ? new Date(body.initial_date) : null,
-      status: body.status ? body.status : null,
+      status: body.status ?? Status.activo,
       hosting: body.hosting ? new Date(body.hosting) : null,
       domain: body.domain ? new Date(body.domain) : null,
       cloud_storage: Boolean(body.cloud_storage),
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         initial_date: projectData.initial_date
           ? new Date(projectData.initial_date)
           : null,
-        status: projectData.status ? projectData.status : null,
+        status: projectData.status ?? Status.activo,
         hosting: projectData.hosting ? new Date(projectData.hosting) : null,
         domain: projectData.domain ? new Date(projectData.domain) : null,
         cloud_storage: Boolean(projectData.cloud_storage),

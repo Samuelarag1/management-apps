@@ -46,8 +46,7 @@ export function ModalProjects() {
   const [loading, setLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [clients, setClients] = useState<IMClients[]>();
-  const { register, handleSubmit, watch, reset, control } =
-    useForm<IFormInput>();
+  const { register, handleSubmit, reset, control } = useForm<IFormInput>();
   const [step, setStep] = useState(1);
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     try {
