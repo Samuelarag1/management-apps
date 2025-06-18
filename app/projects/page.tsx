@@ -58,6 +58,13 @@ export default function ProyectosPage() {
                   setProjectDetail={setProjectDetail}
                 />
               </div>
+              <Button
+                className="flex items-center gap-2"
+                onClick={() => setIsCreating(true)}
+              >
+                <Plus className="h-4 w-4" />
+                Nuevo Proyecto
+              </Button>
 
               <Tabs defaultValue="todos" className="mt-6">
                 <TabsList>

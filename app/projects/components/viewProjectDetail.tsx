@@ -17,7 +17,7 @@ interface ClientModalProps {
   setProjectDetail: (client: IMProjects | undefined) => void;
 }
 
-export function ProjectModal({
+export function viewProjectDetail({
   projectDetail,
   setProjectDetail,
 }: ClientModalProps) {

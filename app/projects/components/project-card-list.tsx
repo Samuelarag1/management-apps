@@ -2,7 +2,6 @@
 
 import { Project } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProjectCard } from "./projectCards";
 
 interface ProjectCardListProps {
   titulo: string;
@@ -27,7 +26,7 @@ export function ProjectCardList({
       </CardHeader>
       <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {proyectos.map((proyecto) => (
-          <ProjectCard
+          <ProjectCardList
             key={proyecto.id}
             proyecto={proyecto}
             mostrarPresupuesto={mostrarPresupuesto}
