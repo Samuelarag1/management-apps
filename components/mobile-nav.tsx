@@ -13,7 +13,7 @@ export function MobileNav() {
   const path = usePathname();
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-background lg:hidden">
-      <div className="grid h-16 grid-cols-5">
+      <div className="grid h-24 grid-cols-5">
         <Link
           href="/"
           className={`flex flex-col items-center justify-center gap-1 text-xs font-medium ${

@@ -8,21 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import IMProjects from "@/Models/Projects";
-import { daysUntilNextYear, formatDate } from "@/utils/dateUtils";
-import { formatPrice } from "@/utils/numberUtils";
 import { LucidePencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -201,7 +190,9 @@ export function ProjectModal({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cloud_storage">Almacenamiento en la nube</Label>
+                  <Label htmlFor="cloud_storage">
+                    Almacenamiento en la nube
+                  </Label>
                   <Input
                     {...register("cloud_storage")}
                     id="cloud_storage"
@@ -209,7 +200,9 @@ export function ProjectModal({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cloud_storage_date">Fecha de Almacenamiento</Label>
+                  <Label htmlFor="cloud_storage_date">
+                    Fecha de Almacenamiento
+                  </Label>
                   <Input
                     {...register("cloud_storage_date")}
                     id="cloud_storage_date"
@@ -267,10 +260,9 @@ export function ProjectModal({
                   : "default"
               } m-2 `}
             >
-              {projectDetail?.status && (
+              {projectDetail?.status &&
                 projectDetail.status[0].toLocaleUpperCase() +
-                projectDetail.status.slice(1)
-              )}
+                  projectDetail.status.slice(1)}
             </Badge>
             <hr />
             <div className="flex w-full items-center justify-between">
@@ -289,16 +281,12 @@ export function ProjectModal({
             <hr />
             <div className="flex w-full items-center justify-between">
               <p>Renovacion de Dominio:</p>
-              <p className="text-sm font-semibold">
-                {projectDetail?.domain}
-              </p>
+              <p className="text-sm font-semibold">{projectDetail?.domain}</p>
             </div>
             <hr />
             <div className="flex w-full items-center justify-between">
               <p>Renovacion de Hosting:</p>
-              <p className="text-sm font-semibold">
-                {projectDetail?.hosting}
-              </p>
+              <p className="text-sm font-semibold">{projectDetail?.hosting}</p>
             </div>
             <hr />
             <div className="flex w-full items-center justify-between">
@@ -320,9 +308,7 @@ export function ProjectModal({
             <div className="flex w-full items-center justify-between">
               <p>Precio:</p>
               <div className="flex items-center">
-                <p className="text-sm font-semibold">
-                  {projectDetail?.price}
-                </p>
+                <p className="text-sm font-semibold">{projectDetail?.price}</p>
               </div>
             </div>
           </CardContent>

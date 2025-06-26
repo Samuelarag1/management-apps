@@ -1,3 +1,4 @@
+"use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,13 +18,17 @@ interface ClientModalProps {
   setProjectDetail: (client: IMProjects | undefined) => void;
 }
 
-export function viewProjectDetail({
+// ERROR: The component name started with a lowercase 'v'.
+// FIX: Rename 'viewProjectDetail' to 'ViewProjectDetail'.
+// Component names in React MUST start with an uppercase letter to use Hooks.
+export function ViewProjectDetail({
   projectDetail,
   setProjectDetail,
 }: ClientModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // This effect handles closing the modal when clicking outside or pressing 'Escape'.
     function handleClickOutside(event: MouseEvent) {
       if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
         setProjectDetail(undefined);
@@ -39,16 +44,19 @@ export function viewProjectDetail({
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEsc);
 
+    // Cleanup function to remove event listeners when the component unmounts.
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEsc);
     };
   }, [setProjectDetail]);
 
+  // If there is no project detail, render nothing.
   if (!projectDetail) return null;
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+    // Modal container
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div ref={cardRef}>
         <Card className="w-96">
           <CardHeader>
@@ -69,46 +77,47 @@ export function viewProjectDetail({
                   : "default"
               }
             >
-              {projectDetail.status[0]?.toLocaleUpperCase() +
-                projectDetail.status.slice(1)}
+              {projectDetail.status &&
+                projectDetail.status.charAt(0).toUpperCase() +
+                  projectDetail.status.slice(1)}
             </Badge>
-            <hr />
+            <hr className="my-4" />
             <div className="flex w-full items-center justify-between">
               <p>Nombre:</p>
               <p className="text-sm font-semibold">{projectDetail.name}</p>
             </div>
-            <hr />
+            <hr className="my-4" />
             {/* <div className="flex w-full items-center justify-between">
-              <p>Empresa:</p>
-              <p className="text-sm font-semibold">{projectDetail.alias}</p>
-            </div>
-            <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Email:</p>
-              <p className="text-sm font-semibold">{projectDetail.email}</p>
-            </div>
-            <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Numero de telefono:</p>
-              <p className="text-sm font-semibold">
-                {projectDetail.phone_number}
-              </p>
-            </div>
-            <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Ubicacion:</p>
-              <p className="text-sm font-semibold">{projectDetail.location}</p>
-            </div>
-            <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Proyectos:</p>
+              <p>Empresa:</p>
+              <p className="text-sm font-semibold">{projectDetail.alias}</p>
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Email:</p>
+              <p className="text-sm font-semibold">{projectDetail.email}</p>
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Numero de telefono:</p>
+              <p className="text-sm font-semibold">
+                {projectDetail.phone_number}
+              </p>
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Ubicacion:</p>
+              <p className="text-sm font-semibold">{projectDetail.location}</p>
+            </div>
+            <hr />
+            <div className="flex w-full items-center justify-between">
+              <p>Proyectos:</p>
 
-              <div className="flex items-center">
-                <p className="text-sm font-semibold">
-                  {projectDetail.projects?.length}
-                </p>
-              </div>
-            </div> */}
+              <div className="flex items-center">
+                <p className="text-sm font-semibold">
+                  {projectDetail.projects?.length}
+                </p>
+              </div>
+            </div> */}
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button className="bg-blue-400 hover:bg-blue-500">

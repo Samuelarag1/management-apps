@@ -7,6 +7,8 @@ import ProjectCardList from "./components/projectCards";
 import { useEffect, useState } from "react";
 import IMProjects from "@/Models/Projects";
 import { ProjectModal } from "./components/projectModal";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export default function ProyectosPage() {
   const [projects, setProjects] = useState<IMProjects[]>();
@@ -60,7 +62,7 @@ export default function ProyectosPage() {
               </div>
               <Button
                 className="flex items-center gap-2"
-                onClick={() => setIsCreating(true)}
+                // onClick={() => setIsCreating(true)}
               >
                 <Plus className="h-4 w-4" />
                 Nuevo Proyecto

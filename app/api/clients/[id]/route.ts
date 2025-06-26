@@ -56,4 +56,4 @@ export async function GET(
   }
 }
 
-export async function UPDATE(req: Request);
+// export async function UPDATE(req: Request);
