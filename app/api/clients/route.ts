@@ -30,8 +30,10 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const clients = await prisma.clients.findMany();
-    return NextResponse.json(clients, { status: 200 });
+    // const clients = await prisma.clients.findMany();
+    // return NextResponse.json(clients, { status: 200 });
+
+    return NextResponse.json("Proyectos");
   } catch {
     return NextResponse.json(
       { message: "Error al traer todos los proyectos" },

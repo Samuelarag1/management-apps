@@ -19,12 +19,12 @@ const projectSchema = z.object({
 });
 
 export async function GET() {
-  const projects = await prisma.project.findMany({
-    include: {
-      client: true,
-    },
-  });
-  return NextResponse.json(projects);
+  // const projects = await prisma.project.findMany({
+  //   include: {
+  //     client: true,
+  //   },
+  // });
+  return NextResponse.json("Proyectos");
 }
 
 export async function POST(req: Request) {
