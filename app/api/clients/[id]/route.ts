@@ -1,59 +1,84 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { errorResponse, handleRouteError, jsonResponse } from "@/lib/http";
+import { prisma } from "@/lib/prisma";
+import { serializeClient } from "@/lib/serializers";
+
+function parseClientId(id: string) {
+  const clientId = Number(id);
+
+  if (!Number.isInteger(clientId) || clientId <= 0) {
+    throw new Error("ID de cliente inválido");
+  }
+
+  return clientId;
+}
 
 export async function DELETE(
-  req: Request,
+  _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const prisma = new PrismaClient();
-  const id = context.params;
-
   try {
-    const clientId = Number(id);
+    const { id } = await context.params;
+    const clientId = parseClientId(id);
 
-    if (isNaN(clientId)) {
-      return NextResponse.json(
-        { message: "Error al eliminar usuario, isNaN" },
-        { status: 400 }
+    const client = await prisma.clients.findUnique({
+      where: { id: clientId },
+      include: {
+        projects: {
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!client) {
+      return errorResponse("Cliente no encontrado", 404);
+    }
+
+    if (client.projects.length > 0) {
+      return errorResponse(
+        "No se puede eliminar un cliente con proyectos asociados",
+        409
       );
     }
 
     await prisma.clients.delete({ where: { id: clientId } });
 
-    return NextResponse.json(
-      { message: "Usuario eliminado correctamente!" },
-      { status: 200 }
-    );
-  } catch {
-    return NextResponse.json(
-      { message: "Error al eliminar usuario" },
-      { status: 500 }
-    );
+    return jsonResponse({ message: "Cliente eliminado correctamente" });
+  } catch (error) {
+    return handleRouteError(error, "Error al eliminar cliente");
   }
 }
 
 export async function GET(
-  req: Request,
+  _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const prisma = new PrismaClient();
-  const { id } = await context.params;
-
   try {
-    const user = await prisma.clients.findFirst({
-      where: { id: Number(id) },
-      include: { projects: true },
+    const { id } = await context.params;
+    const clientId = parseClientId(id);
+
+    const client = await prisma.clients.findUnique({
+      where: { id: clientId },
+      include: {
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            finish_date: true,
+          },
+          orderBy: {
+            name: "asc",
+          },
+        },
+      },
     });
 
-    if (!user) throw new Error("No se ecn");
+    if (!client) {
+      return errorResponse("Cliente no encontrado", 404);
+    }
 
-    return NextResponse.json(user);
-  } catch {
-    return NextResponse.json(
-      { message: "Error al encontrar este usuario" },
-      { status: 400 }
-    );
+    return jsonResponse(serializeClient(client));
+  } catch (error) {
+    return handleRouteError(error, "Error al encontrar el cliente", 400);
   }
 }
-
-// export async function UPDATE(req: Request);

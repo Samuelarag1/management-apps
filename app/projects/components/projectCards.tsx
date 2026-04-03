@@ -1,3 +1,7 @@
+import { getProjectStatusClassName, getProjectStatusLabel } from "@/lib/status";
+import type { ProjectRecord } from "@/types/entities";
+import { formatDate, daysUntilNextYear } from "@/utils/dateUtils";
+import { formatPrice } from "@/utils/numberUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,25 +18,37 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import IMProjects from "@/Models/Projects";
 import { MoreHorizontal } from "lucide-react";
-import { formatDate, daysUntilNextYear } from "@/utils/dateUtils";
-import { formatPrice } from "@/utils/numberUtils";
 
 interface ProjectCardListProps {
   titulo: string;
   descripcion: string;
-  proyectos: IMProjects[];
-  mostrarPresupuesto?: boolean;
-  onDelete?: (id: string) => void;
+  proyectos: ProjectRecord[];
+  onDelete?: (id: string) => Promise<void>;
   onViewProject?: (id: string) => void;
+}
+
+function DomainRenewal({ value }: { value: ProjectRecord["domain"] }) {
+  const remainingDays = daysUntilNextYear(value);
+
+  if (!value) {
+    return <span className="text-muted-foreground">Sin dominio</span>;
+  }
+
+  return (
+    <div>
+      <p>{formatDate(value)}</p>
+      <strong>
+        {remainingDays === null ? "Sin cálculo" : `Faltan ${remainingDays} días`}
+      </strong>
+    </div>
+  );
 }
 
 const ProjectCardList = ({
   titulo,
   descripcion,
   proyectos,
-  mostrarPresupuesto = false,
   onDelete,
   onViewProject,
 }: ProjectCardListProps) => (
@@ -43,48 +59,38 @@ const ProjectCardList = ({
     </CardHeader>
 
     <CardContent>
-      {/* Desktop Table */}
-      <div className="hidden md:block rounded-md border">
+      {proyectos.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No hay proyectos para mostrar en esta sección.
+        </p>
+      ) : null}
+
+      <div className="hidden rounded-md border md:block">
         <div className="grid grid-cols-8 gap-4 p-4 font-medium">
           <div className="col-span-2">Proyecto</div>
           <div>Cliente</div>
           <div>Estado</div>
-          <div>Fecha de Finalización</div>
-          <div>Precio Final</div>
+          <div>Fecha de finalización</div>
+          <div>Precio final</div>
           <div>Dominio</div>
           <div>Acciones</div>
         </div>
         <div className="divide-y">
-          {proyectos?.map((proyecto) => (
+          {proyectos.map((proyecto) => (
             <div
               key={proyecto.id}
-              className="grid grid-cols-8 gap-4 p-4 items-center"
+              className="grid grid-cols-8 items-center gap-4 p-4"
             >
               <div className="col-span-2 font-medium">{proyecto.name}</div>
-              <div>{proyecto.client?.alias ?? proyecto.client?.name}</div>
+              <div>{proyecto.client?.alias ?? proyecto.client?.name ?? "-"}</div>
               <div>
-                <Badge
-                  className={
-                    proyecto.status === "complete"
-                      ? "bg-green-800 text-white"
-                      : proyecto.status === "active"
-                      ? "default"
-                      : proyecto.status === "Planificación"
-                      ? "secondary"
-                      : "destructive"
-                  }
-                >
-                  {proyecto.status?.toLocaleUpperCase()}
+                <Badge className={getProjectStatusClassName(proyecto.status)}>
+                  {getProjectStatusLabel(proyecto.status)}
                 </Badge>
               </div>
               <div>{formatDate(proyecto.finish_date)}</div>
               <div>{formatPrice(proyecto.price)}</div>
-              <div>
-                <p>{formatDate(proyecto.domain)}</p>
-                <strong>
-                  Faltan: {daysUntilNextYear(proyecto.domain)} días
-                </strong>
-              </div>
+              <DomainRenewal value={proyecto.domain} />
               <div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -99,22 +105,14 @@ const ProjectCardList = ({
                     >
                       Ver detalles
                     </DropdownMenuItem>
-                    {!mostrarPresupuesto ? (
-                      <>
-                        <DropdownMenuItem>Editar proyecto</DropdownMenuItem>
-                        <DropdownMenuItem>Ver tareas</DropdownMenuItem>
-                      </>
-                    ) : (
-                      <>
-                        <DropdownMenuItem>Duplicar proyecto</DropdownMenuItem>
-                        <DropdownMenuItem>Generar informe</DropdownMenuItem>
-                      </>
-                    )}
+                    <DropdownMenuItem disabled>Editar proyecto</DropdownMenuItem>
+                    <DropdownMenuItem disabled>Ver tareas</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
-                      {mostrarPresupuesto
-                        ? "Archivar proyecto"
-                        : "Eliminar proyecto"}
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => void onDelete?.(proyecto.id)}
+                    >
+                      Eliminar proyecto
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -124,33 +122,21 @@ const ProjectCardList = ({
         </div>
       </div>
 
-      {/* Mobile Version */}
-      <div className="block md:hidden space-y-4">
-        {proyectos?.map((proyecto) => (
+      <div className="space-y-4 md:hidden">
+        {proyectos.map((proyecto) => (
           <div
             key={proyecto.id}
-            className="border rounded-md p-4 flex flex-col gap-2"
+            className="flex flex-col gap-2 rounded-md border p-4"
           >
             <div className="text-lg font-semibold">{proyecto.name}</div>
             <div>
               <span className="font-medium">Cliente:</span>{" "}
-              {proyecto.client?.name}
+              {proyecto.client?.alias ?? proyecto.client?.name ?? "-"}
             </div>
             <div>
               <span className="font-medium">Estado:</span>{" "}
-              <Badge
-                className={
-                  proyecto.status === "completo"
-                    ? "bg-green-800 text-white"
-                    : proyecto.status === "activo"
-                    ? "default"
-                    : proyecto.status === "descontinuado"
-                    ? "destructive"
-                    : "default"
-                }
-              >
-                {proyecto.status[0]?.toLocaleUpperCase() +
-                  proyecto.status.slice(1)}
+              <Badge className={getProjectStatusClassName(proyecto.status)}>
+                {getProjectStatusLabel(proyecto.status)}
               </Badge>
             </div>
             <div>
@@ -163,8 +149,7 @@ const ProjectCardList = ({
             </div>
             <div>
               <span className="font-medium">Dominio:</span>{" "}
-              {formatDate(proyecto.domain)} –{" "}
-              <strong>{daysUntilNextYear(proyecto.domain)} días</strong>
+              <DomainRenewal value={proyecto.domain} />
             </div>
             <div className="mt-2">
               <DropdownMenu>
@@ -179,21 +164,12 @@ const ProjectCardList = ({
                   >
                     Ver detalles
                   </DropdownMenuItem>
-                  {!mostrarPresupuesto ? (
-                    <>
-                      <DropdownMenuItem>Editar proyecto</DropdownMenuItem>
-                      <DropdownMenuItem>Ver tareas</DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      <DropdownMenuItem>Duplicar proyecto</DropdownMenuItem>
-                      <DropdownMenuItem>Generar informe</DropdownMenuItem>
-                    </>
-                  )}
+                  <DropdownMenuItem disabled>Editar proyecto</DropdownMenuItem>
+                  <DropdownMenuItem disabled>Ver tareas</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-destructive"
-                    onClick={() => onDelete?.(proyecto.id)}
+                    onClick={() => void onDelete?.(proyecto.id)}
                   >
                     Eliminar proyecto
                   </DropdownMenuItem>

@@ -1,4 +1,7 @@
 "use client";
+
+import { fetchJson } from "@/lib/api-client";
+import type { ClientRecord, ProjectRecord } from "@/types/entities";
 import SpinnerOverlay from "@/components/spinner-overlay";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,37 +24,99 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import IMClients from "@/Models/Clients";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-interface IFormInput {
+interface ProjectFormValues {
   name: string;
   price: number;
   description: string;
   pre_payment?: string;
   finish_date: string;
-  status?: string;
+  status: "activo" | "completo" | "descontinuado";
   initial_date: string;
   hosting: string;
   domain: string;
-  cloud_storage?: boolean;
-  cloud_storage_date?: string;
-  clientsId: number;
-  Clients?: IMClients;
+  cloud_storage: boolean;
+  cloud_storage_date: string;
+  clientsId: number | null;
 }
 
-export function ModalProjects() {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(false);
-  const [clients, setClients] = useState<IMClients[]>();
-  const { register, handleSubmit, reset, control } = useForm<IFormInput>();
+interface ModalProjectsProps {
+  onCreated?: (project: ProjectRecord) => void;
+}
+
+const defaultValues: ProjectFormValues = {
+  name: "",
+  price: 0,
+  description: "",
+  pre_payment: "",
+  finish_date: "",
+  status: "activo",
+  initial_date: "",
+  hosting: "",
+  domain: "",
+  cloud_storage: false,
+  cloud_storage_date: "",
+  clientsId: null,
+};
+
+export function ModalProjects({ onCreated }: ModalProjectsProps) {
+  const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
-  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
+  const [clients, setClients] = useState<ClientRecord[]>([]);
+  const [isLoadingClients, setIsLoadingClients] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { isSubmitting },
+  } = useForm<ProjectFormValues>({
+    defaultValues,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadClients() {
+      if (!open) {
+        return;
+      }
+
+      try {
+        setIsLoadingClients(true);
+        const data = await fetchJson<ClientRecord[]>("/api/clients");
+
+        if (!cancelled) {
+          setClients(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "No se pudieron cargar los clientes"
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingClients(false);
+        }
+      }
+    }
+
+    loadClients();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  const onSubmit: SubmitHandler<ProjectFormValues> = async (data) => {
     try {
-      setLoading(true);
-      const res = await fetch("/api/projects", {
+      const project = await fetchJson<ProjectRecord>("/api/projects", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,232 +124,236 @@ export function ModalProjects() {
         body: JSON.stringify(data),
       });
 
-      if (!res.ok) throw new Error("Error en el servidor");
-
+      onCreated?.(project);
       toast.success("Proyecto creado exitosamente");
       setOpen(false);
-      reset();
+      setStep(1);
+      reset(defaultValues);
     } catch (error) {
-      console.error(error);
-      toast.error("Error al agregar nuevo proyecto");
-    } finally {
-      setLoading(false);
+      toast.error(
+        error instanceof Error ? error.message : "Error al agregar el proyecto"
+      );
     }
   };
 
-  useEffect(() => {
-    fetch("/api/clients")
-      .then((res) => res.json())
-      .then((data) => setClients(data));
-  }, []);
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+
+    if (!nextOpen) {
+      setStep(1);
+      reset(defaultValues);
+    }
+  };
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="default">Nuevo proyecto</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          {loading && <SpinnerOverlay />}
-          <DialogHeader>
-            <DialogTitle>Nuevo proyecto</DialogTitle>
-            <DialogDescription>
-              Rellena los campos con la información necesaria
-            </DialogDescription>
-          </DialogHeader>
-          <form className="grid gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
-            {step === 1 && (
-              <>
-                <div className="flex w-full justify-between">
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="name" className="text-right">
-                      Nombre
-                    </Label>
-                    <Input
-                      {...register("name")}
-                      placeholder="Nombre del proyecto"
-                      className="text-xs"
-                      required
-                    />
-                  </div>
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="price" className="text-right ml-2">
-                      Precio
-                    </Label>
-                    <Input
-                      {...register("price")}
-                      type="number"
-                      placeholder="$$$"
-                      required
-                      className="text-xs"
-                    />
-                  </div>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button>Nuevo proyecto</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[520px]">
+        {isSubmitting ? <SpinnerOverlay /> : null}
+        <DialogHeader>
+          <DialogTitle>Nuevo proyecto</DialogTitle>
+          <DialogDescription>
+            Registra los datos principales y técnicos del proyecto.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="grid gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
+          {step === 1 ? (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nombre</Label>
+                  <Input
+                    id="name"
+                    {...register("name")}
+                    placeholder="Nombre del proyecto"
+                    required
+                  />
                 </div>
-                <div className="flex w-full justify-between">
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="initial_date" className="text-right">
-                      Fecha de inicio
-                    </Label>
-                    <Input
-                      type="date"
-                      {...register("initial_date")}
-                      required
-                      className="text-xs"
-                    />
-                  </div>
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="finish_date" className="text-right">
-                      Fecha de entrega
-                    </Label>
-                    <Input
-                      type="date"
-                      {...register("finish_date")}
-                      className="text-xs"
-                      required
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Precio</Label>
+                  <Input
+                    id="price"
+                    {...register("price", { valueAsNumber: true })}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    required
+                  />
                 </div>
-                <div className="flex w-full justify-between">
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="pre_payment" className="text-right ml-2">
-                      Pago anticipado
-                    </Label>
-                    <Input
-                      {...register("pre_payment")}
-                      placeholder="$$$"
-                      className="text-xs"
-                    />
-                  </div>
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="status" className="text-right">
-                      Estado
-                    </Label>
-                    <Controller
-                      name="status"
-                      control={control}
-                      defaultValue=""
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Estado" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="activo">Activo</SelectItem>
-                            <SelectItem value="completo">Completado</SelectItem>
-                            <SelectItem value="descontinuado">
-                              Discontinuado
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="initial_date">Fecha de inicio</Label>
+                  <Input
+                    id="initial_date"
+                    type="date"
+                    {...register("initial_date")}
+                    required
+                  />
                 </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <div className="flex w-full justify-between">
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="hosting" className="text-right">
-                      Renovacion de hosting
-                    </Label>
-                    <Input
-                      type="date"
-                      {...register("hosting")}
-                      className="text-xs"
-                    />
-                  </div>
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="domain" className="text-right">
-                      Renovacion de Dominio
-                    </Label>
-                    <Input
-                      type="date"
-                      {...register("domain")}
-                      className="text-xs"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="finish_date">Fecha de entrega</Label>
+                  <Input
+                    id="finish_date"
+                    type="date"
+                    {...register("finish_date")}
+                    required
+                  />
                 </div>
-                <div className="flex w-full justify-between">
-                  <div className="flex flex-col items-start justify-center gap-2 w-40 h-12">
-                    <Label htmlFor="cloud_storage" className="text-right">
-                      Cloud Storage
-                    </Label>
-                    <Switch {...register("cloud_storage")} />
-                  </div>
-                  <div className="flex flex-col items-start gap-2 w-40">
-                    <Label htmlFor="pre_payment" className="text-right ml-2">
-                      Usuario Relacionado
-                    </Label>
-                    <Controller
-                      name="clientsId"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange(Number(value))
-                          }
-                          value={field.value?.toString() ?? ""}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Cliente" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {clients?.map((client) => (
-                              <SelectItem
-                                key={client.id}
-                                value={client.id.toString()}
-                              >
-                                {client.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="pre_payment">Pago anticipado</Label>
+                  <Input
+                    id="pre_payment"
+                    {...register("pre_payment")}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
                 </div>
-
-                <div className="flex flex-col items-start gap-2 w-full">
-                  <Label htmlFor="description" className="text-right">
-                    Descripcion
+                <div className="space-y-2">
+                  <Label htmlFor="status">Estado</Label>
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="activo">Activo</SelectItem>
+                          <SelectItem value="completo">Completo</SelectItem>
+                          <SelectItem value="descontinuado">
+                            Descontinuado
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="hosting">Renovación de hosting</Label>
+                  <Input id="hosting" type="date" {...register("hosting")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="domain">Renovación de dominio</Label>
+                  <Input id="domain" type="date" {...register("domain")} />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="cloud_storage">Cloud storage</Label>
+                  <Controller
+                    name="cloud_storage"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex h-10 items-center rounded-md border px-3">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          aria-label="Cloud storage"
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cloud_storage_date">
+                    Renovación de cloud
                   </Label>
-                  <Textarea {...register("description")} />
+                  <Input
+                    id="cloud_storage_date"
+                    type="date"
+                    {...register("cloud_storage_date")}
+                  />
                 </div>
-              </>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="clientsId">Cliente relacionado</Label>
+                <Controller
+                  name="clientsId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(value ? Number(value) : null)
+                      }
+                      value={field.value?.toString() ?? ""}
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            isLoadingClients
+                              ? "Cargando clientes..."
+                              : "Selecciona un cliente"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem
+                            key={client.id}
+                            value={client.id.toString()}
+                          >
+                            {client.alias}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Descripción</Label>
+                <Textarea
+                  id="description"
+                  {...register("description")}
+                  placeholder="Describe el objetivo y alcance del proyecto"
+                />
+              </div>
+            </>
+          )}
+
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+            {step > 1 ? (
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setStep(1)}
+              >
+                Atrás
+              </Button>
+            ) : (
+              <div />
             )}
 
-            <DialogFooter className="flex justify-between pt-4">
-              {step > 1 && (
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setStep(step - 1)}
-                >
-                  Atrás
-                </Button>
-              )}
-              {step < 2 && (
-                <Button type="button" onClick={() => setStep(step + 1)}>
-                  Siguiente
-                </Button>
-              )}
-              {step === 2 && (
-                <Button type="submit" disabled={loading}>
-                  Crear proyecto
-                </Button>
-              )}
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-      {loading ? <SpinnerOverlay /> : null}
-    </>
+            {step < 2 ? (
+              <Button type="button" onClick={() => setStep(2)}>
+                Siguiente
+              </Button>
+            ) : (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creando..." : "Crear proyecto"}
+              </Button>
+            )}
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

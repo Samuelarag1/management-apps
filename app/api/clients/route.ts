@@ -1,43 +1,67 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
+import { errorResponse, handleRouteError, jsonResponse } from "@/lib/http";
+import { prisma } from "@/lib/prisma";
+import { serializeClient } from "@/lib/serializers";
+import { createClientSchema } from "@/lib/validators";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email } = body;
-    console.log(email);
+    const payload = createClientSchema.parse(await req.json());
 
-    const client = await prisma.clients.findUnique({ where: { email } });
+    const existingClient = await prisma.clients.findUnique({
+      where: { email: payload.email },
+    });
 
-    if (!client) {
-      await prisma.clients.create({ data: body });
-      return NextResponse.json({ message: "Cliente creado" }, { status: 201 });
-    } else {
-      return NextResponse.json(
-        { message: "El cliente ya existe" },
-        { status: 500 }
-      );
+    if (existingClient) {
+      return errorResponse("Ya existe un cliente con ese email", 409);
     }
-  } catch {
-    return NextResponse.json(
-      { message: "Error al crear usuario" },
-      { status: 500 }
-    );
+
+    const client = await prisma.clients.create({
+      data: {
+        ...payload,
+        phone_number: payload.phone_number ?? null,
+        location: payload.location ?? null,
+      },
+      include: {
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            finish_date: true,
+          },
+        },
+      },
+    });
+
+    return jsonResponse(serializeClient(client), 201);
+  } catch (error) {
+    return handleRouteError(error, "Error al crear cliente");
   }
 }
 
 export async function GET() {
   try {
-    // const clients = await prisma.clients.findMany();
-    // return NextResponse.json(clients, { status: 200 });
+    const clients = await prisma.clients.findMany({
+      include: {
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            finish_date: true,
+          },
+          orderBy: {
+            name: "asc",
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
 
-    return NextResponse.json("Proyectos");
-  } catch {
-    return NextResponse.json(
-      { message: "Error al traer todos los proyectos" },
-      { status: 500 }
-    );
+    return jsonResponse(clients.map(serializeClient));
+  } catch (error) {
+    return handleRouteError(error, "Error al traer clientes");
   }
 }

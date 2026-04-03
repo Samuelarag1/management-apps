@@ -1,51 +1,46 @@
-import { Progress } from "@/components/ui/progress";
+import type { Status } from "@prisma/client";
+import { getProjectStatusClassName, getProjectStatusLabel } from "@/lib/status";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/utils/dateUtils";
 
-export function ProjectsOverview() {
-  const projects = [
-    {
-      name: "Rediseño Web",
-      client: "Acme Inc",
-      progress: 65,
-      daysLeft: 10,
-    },
-    {
-      name: "App Móvil",
-      client: "TechCorp",
-      progress: 25,
-      daysLeft: 45,
-    },
-    {
-      name: "Campaña Marketing",
-      client: "GlobalBiz",
-      progress: 50,
-      daysLeft: 15,
-    },
-    {
-      name: "Tienda Online",
-      client: "LocalShop",
-      progress: 90,
-      daysLeft: 3,
-    },
-  ];
+interface ProjectsOverviewItem {
+  id: string;
+  name: string;
+  client: string | null;
+  status: Status | null;
+  finishDate: string | null;
+}
+
+interface ProjectsOverviewProps {
+  projects: ProjectsOverviewItem[];
+}
+
+export function ProjectsOverview({ projects }: ProjectsOverviewProps) {
+  if (projects.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Aún no hay proyectos cargados para mostrar.
+      </p>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {projects.map((project, i) => (
-        <div key={i} className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between">
+      {projects.map((project) => (
+        <div key={project.id} className="flex flex-col gap-3 rounded-lg border p-4">
+          <div className="flex items-start justify-between gap-4">
             <div>
               <div className="font-medium">{project.name}</div>
               <div className="text-sm text-muted-foreground">
-                {project.client}
+                {project.client ?? "Sin cliente"}
               </div>
             </div>
-            <div className="text-sm text-muted-foreground">
-              {project.daysLeft} días restantes
-            </div>
+            <Badge className={getProjectStatusClassName(project.status)}>
+              {getProjectStatusLabel(project.status)}
+            </Badge>
           </div>
-          <div className="flex items-center gap-2">
-            <Progress value={project.progress} className="h-2" />
-            <span className="text-sm font-medium">{project.progress}%</span>
+          <div className="text-sm text-muted-foreground">
+            Entrega: {formatDate(project.finishDate)}
           </div>
         </div>
       ))}

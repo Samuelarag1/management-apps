@@ -1,3 +1,5 @@
+import { getClientStatusClassName } from "@/lib/status";
+import type { ClientRecord } from "@/types/entities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,14 +9,13 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import IMClients from "@/Models/Clients";
 import { LucidePencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 interface ClientModalProps {
-  clientDetail: IMClients | undefined;
-  setClientDetail: (client: IMClients | undefined) => void;
+  clientDetail: ClientRecord | undefined;
+  setClientDetail: (client: ClientRecord | undefined) => void;
 }
 
 export function ClientModal({
@@ -45,67 +46,68 @@ export function ClientModal({
     };
   }, [setClientDetail]);
 
-  if (!clientDetail) return null;
+  if (!clientDetail) {
+    return null;
+  }
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4">
       <div ref={cardRef}>
-        <Card className="w-96">
+        <Card className="w-full max-w-md">
           <CardHeader>
             Detalle de {clientDetail.name}
-            <CardDescription>
-              <p>{clientDetail.alias}</p>
-            </CardDescription>
+            <CardDescription>{clientDetail.alias}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Badge
-              className={`mt-0 mb-2 ${
-                clientDetail.status === "Activo"
-                  ? "bg-green-800"
-                  : clientDetail.status === "Inactivo"
-                  ? "secondary"
-                  : "outline"
-              }`}
-            >
+          <CardContent className="space-y-3">
+            <Badge className={getClientStatusClassName(clientDetail.status)}>
               {clientDetail.status}
             </Badge>
             <hr />
-            <div className="flex w-full items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <p>Nombre:</p>
               <p className="text-sm font-semibold">{clientDetail.name}</p>
             </div>
             <hr />
-            <div className="flex w-full items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <p>Empresa:</p>
               <p className="text-sm font-semibold">{clientDetail.alias}</p>
             </div>
             <hr />
-            <div className="flex w-full items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <p>Email:</p>
               <p className="text-sm font-semibold">{clientDetail.email}</p>
             </div>
             <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Numero de telefono:</p>
+            <div className="flex items-center justify-between gap-4">
+              <p>Teléfono:</p>
               <p className="text-sm font-semibold">
-                {clientDetail.phone_number}
+                {clientDetail.phone_number ?? "Sin dato"}
               </p>
             </div>
             <hr />
-            <div className="flex w-full items-center justify-between">
-              <p>Ubicacion:</p>
-              <p className="text-sm font-semibold">{clientDetail.location}</p>
+            <div className="flex items-center justify-between gap-4">
+              <p>Ubicación:</p>
+              <p className="text-sm font-semibold">
+                {clientDetail.location ?? "Sin dato"}
+              </p>
+            </div>
+            <hr />
+            <div className="flex items-center justify-between gap-4">
+              <p>Proyectos asociados:</p>
+              <p className="text-sm font-semibold">
+                {clientDetail.projects.length}
+              </p>
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button className="bg-[#7C3AED] hover:bg-[#2f1b50]">
-              <Link href="/projects">Proyectos</Link>
+            <Button asChild className="bg-blue-500 hover:bg-blue-600">
+              <Link href="/projects">Ver proyectos</Link>
             </Button>
             <div className="flex gap-2">
-              <Button className="bg-blue-600 hover:bg-blue-800">
+              <Button className="bg-blue-600 hover:bg-blue-700" size="icon">
                 <LucidePencil />
               </Button>
-              <Button variant={"destructive"}>
+              <Button variant="destructive" size="icon">
                 <Trash2 />
               </Button>
             </div>

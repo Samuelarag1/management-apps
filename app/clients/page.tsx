@@ -1,4 +1,8 @@
 "use client";
+
+import { fetchJson } from "@/lib/api-client";
+import { getClientStatusClassName } from "@/lib/status";
+import type { ClientRecord } from "@/types/entities";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,48 +23,92 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ModalClients } from "./components/createUser";
-import { useEffect, useState } from "react";
-import IMClients from "@/Models/Clients";
+import { useDeferredValue, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import SpinnerOverlay from "@/components/spinner-overlay";
 import { ClientModal } from "./components/userDetails";
+import { toast } from "sonner";
 
 export default function ClientesPage() {
-  const [clients, setClients] = useState<IMClients[]>();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [clientDetail, setClientDetail] = useState<IMClients>();
+  const [clients, setClients] = useState<ClientRecord[]>([]);
+  const [clientDetail, setClientDetail] = useState<ClientRecord>();
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    fetch("/api/clients")
-      .then((res) => res.json())
-      .then((data) => setClients(data));
+    let cancelled = false;
+
+    async function loadClients() {
+      try {
+        const data = await fetchJson<ClientRecord[]>("/api/clients");
+
+        if (!cancelled) {
+          setClients(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "No se pudieron cargar los clientes"
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadClients();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const filteredClients = clients.filter((client) => {
+    const query = deferredSearch.trim().toLowerCase();
+
+    if (!query) {
+      return true;
+    }
+
+    return [
+      client.name,
+      client.alias,
+      client.email,
+      client.location ?? "",
+      client.phone_number ?? "",
+    ].some((value) => value.toLowerCase().includes(query));
+  });
 
   const handleOnDelete = async (id: number) => {
     try {
-      setLoading(true);
-      const res = await fetch(`/api/clients/${id}`, {
+      setIsDeleting(true);
+      await fetchJson<{ message: string }>(`/api/clients/${id}`, {
         method: "DELETE",
       });
 
-      if (!res.ok) {
-        console.error("Error al eliminar el cliente");
-      }
-      setClients((prev) => prev?.filter((c) => c.id !== id));
+      setClients((prev) => prev.filter((client) => client.id !== id));
+      setClientDetail((prev) => (prev?.id === id ? undefined : prev));
+      toast.success("Cliente eliminado correctamente");
     } catch (error) {
-      console.error("Error al eliminar cliente:", error);
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo eliminar el cliente"
+      );
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
   };
 
-  const handleViewDetails = async (id: number) => {
-    await fetch(`/api/clients/${id}`)
-      .then((res) => res.json())
-      .then((data) => setClientDetail(data));
+  const handleCreatedClient = (client: ClientRecord) => {
+    setClients((prev) => [client, ...prev]);
   };
 
   return (
@@ -86,97 +134,101 @@ export default function ClientesPage() {
                     <Input
                       type="search"
                       placeholder="Buscar cliente..."
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
                       className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
                     />
                   </div>
 
-                  <ModalClients title="Nuevo Cliente" isCreating />
+                  <ModalClients
+                    title="Nuevo cliente"
+                    onCreated={handleCreatedClient}
+                  />
                 </div>
               </div>
 
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle>Todos los Clientes</CardTitle>
+                  <CardTitle>Todos los clientes</CardTitle>
                   <CardDescription>
-                    Lista de todos tus clientes y sus datos de contacto
+                    Lista de contactos, estado y proyectos asociados.
                   </CardDescription>
                 </CardHeader>
-                {!clients ? (
-                  <CardContent>
-                    {" "}
-                    <div className="flex items-center justify-start gap-6">
-                      <Skeleton className="h-12 w-12 rounded-full" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-[250px]" />
-                        <Skeleton className="h-4 w-[200px]" />
+                {isLoading ? (
+                  <CardContent className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-start gap-6"
+                      >
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-[250px]" />
+                          <Skeleton className="h-4 w-[200px]" />
+                        </div>
                       </div>
-                    </div>
+                    ))}
+                  </CardContent>
+                ) : filteredClients.length === 0 ? (
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      No hay clientes que coincidan con la búsqueda actual.
+                    </p>
                   </CardContent>
                 ) : (
                   <CardContent>
                     <div className="grid gap-6">
-                      {clients?.map((cliente) => (
+                      {filteredClients.map((client) => (
                         <div
-                          key={cliente.id}
+                          key={client.id}
                           className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center"
                         >
                           <div className="flex items-center gap-4">
                             <Avatar className="h-12 w-12">
-                              <AvatarImage
-                                src={`/placeholder.svg?height=48&width=48&text=`}
-                              />
                               <AvatarFallback>
-                                {cliente.name.split("")[0]}
+                                {client.name.charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className="font-semibold">
-                                  {cliente.alias}
+                                  {client.alias}
                                 </h3>
                                 <Badge
-                                  className={`mt-0 mb-2 ${
-                                    cliente.status === "Activo"
-                                      ? "bg-green-800"
-                                      : cliente.status === "Inactivo"
-                                      ? "secondary"
-                                      : "outline"
-                                  }`}
+                                  className={getClientStatusClassName(
+                                    client.status
+                                  )}
                                 >
-                                  {cliente.status}
+                                  {client.status}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                {cliente.name}
+                                {client.name}
                               </p>
                             </div>
                           </div>
-                          <div className="ml-0 flex flex-1 flex-col gap-2 sm:ml-4 md:flex-row md:item s-center md:justify-between">
+                          <div className="ml-0 flex flex-1 flex-col gap-2 sm:ml-4 md:flex-row md:items-center md:justify-between">
                             <div className="grid gap-1">
                               <div className="flex items-center text-sm">
                                 <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                                <span>{cliente.email}</span>
+                                <span>{client.email}</span>
                               </div>
                               <div className="flex items-center text-sm">
                                 <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                                <span>{cliente.phone_number}</span>
+                                <span>{client.phone_number ?? "Sin teléfono"}</span>
                               </div>
                               <div className="flex items-center text-sm">
                                 <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                                <span>{cliente.location}</span>
+                                <span>{client.location ?? "Sin ubicación"}</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {cliente.projects?.length ? (
-                                <div className="text-sm">
-                                  <span className="font-medium">
-                                    {cliente.projects?.length}
-                                  </span>{" "}
-                                  proyectos
-                                </div>
-                              ) : (
-                                ""
-                              )}
+                              <div className="text-sm">
+                                <span className="font-medium">
+                                  {client.projects.length}
+                                </span>{" "}
+                                proyectos
+                              </div>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon">
@@ -186,22 +238,20 @@ export default function ClientesPage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem
-                                    onClick={() =>
-                                      handleViewDetails(cliente.id)
-                                    }
+                                    onClick={() => setClientDetail(client)}
                                   >
                                     Ver detalles
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem>
+                                  <DropdownMenuItem disabled>
                                     Editar cliente
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem>
+                                  <DropdownMenuItem disabled>
                                     Ver proyectos
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     className="text-destructive"
-                                    onClick={() => handleOnDelete(cliente.id)}
+                                    onClick={() => handleOnDelete(client.id)}
                                   >
                                     Eliminar cliente
                                   </DropdownMenuItem>
@@ -220,7 +270,7 @@ export default function ClientesPage() {
         </div>
         <MobileNav />
       </div>
-      {loading ? <SpinnerOverlay /> : null}
+      {isDeleting ? <SpinnerOverlay /> : null}
       <ClientModal
         clientDetail={clientDetail}
         setClientDetail={setClientDetail}

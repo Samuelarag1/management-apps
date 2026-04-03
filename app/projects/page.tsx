@@ -1,42 +1,83 @@
 "use client";
+
+import { fetchJson } from "@/lib/api-client";
+import type { ProjectRecord } from "@/types/entities";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { Sidebar } from "@/components/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectCardList from "./components/projectCards";
 import { useEffect, useState } from "react";
-import IMProjects from "@/Models/Projects";
 import { ProjectModal } from "./components/projectModal";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { ModalProjects } from "./components/createProject";
+import { toast } from "sonner";
 
 export default function ProyectosPage() {
-  const [projects, setProjects] = useState<IMProjects[]>();
-  const [projectDetail, setProjectDetail] = useState<IMProjects>();
+  const [projects, setProjects] = useState<ProjectRecord[]>([]);
+  const [projectDetail, setProjectDetail] = useState<ProjectRecord>();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("api/projects")
-      .then((res) => res.json())
-      .then((data) => setProjects(data));
+    let cancelled = false;
+
+    async function loadProjects() {
+      try {
+        const data = await fetchJson<ProjectRecord[]>("/api/projects");
+
+        if (!cancelled) {
+          setProjects(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "No se pudieron cargar los proyectos"
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProjects();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const deleteProject = async (projectId: string) => {
-    const res = await fetch(`/api/projects/${projectId}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
-      setProjects((prev) => prev?.filter((p) => p.id !== projectId.toString()));
-    } else {
-      console.error("Error al eliminar el proyecto");
+    try {
+      await fetchJson<{ message: string }>(`/api/projects/${projectId}`, {
+        method: "DELETE",
+      });
+
+      setProjects((prev) => prev.filter((project) => project.id !== projectId));
+      setProjectDetail((prev) => (prev?.id === projectId ? undefined : prev));
+      toast.success("Proyecto eliminado correctamente");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo eliminar el proyecto"
+      );
     }
   };
-  const handleViewDetails = async (id: string) => {
-    await fetch(`/api/projects/${id}`)
-      .then((res) => res.json())
-      .then((data) => setProjectDetail(data));
 
-    console.log(projectDetail);
+  const handleCreatedProject = (project: ProjectRecord) => {
+    setProjects((prev) => [project, ...prev]);
   };
+
+  const activeProjects = projects.filter((project) => project.status === "activo");
+  const completedProjects = projects.filter(
+    (project) => project.status === "completo"
+  );
+  const discontinuedProjects = projects.filter(
+    (project) => project.status === "descontinuado"
+  );
 
   return (
     <>
@@ -55,62 +96,78 @@ export default function ProyectosPage() {
                     Gestiona tus proyectos y su progreso
                   </p>
                 </div>
-                <ProjectModal
-                  projectDetail={projectDetail}
-                  setProjectDetail={setProjectDetail}
-                />
+                <ModalProjects onCreated={handleCreatedProject} />
               </div>
-              <Button
-                className="flex items-center gap-2"
-                // onClick={() => setIsCreating(true)}
-              >
-                <Plus className="h-4 w-4" />
-                Nuevo Proyecto
-              </Button>
 
               <Tabs defaultValue="todos" className="mt-6">
                 <TabsList>
-                  <TabsTrigger value="todos">Todos</TabsTrigger>
-                  <TabsTrigger value="activos">Activos</TabsTrigger>
-                  <TabsTrigger value="completados">Completados</TabsTrigger>
+                  <TabsTrigger value="todos">
+                    Todos ({projects.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="activos">
+                    Activos ({activeProjects.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="completados">
+                    Completados ({completedProjects.length})
+                  </TabsTrigger>
                   <TabsTrigger value="descontinuados">
-                    Descontinuados
+                    Descontinuados ({discontinuedProjects.length})
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="todos">
                   <ProjectCardList
-                    titulo="Todos los Proyectos"
-                    descripcion="Lista de todos tus proyectos y su estado actual"
-                    proyectos={projects!}
+                    titulo="Todos los proyectos"
+                    descripcion={
+                      isLoading
+                        ? "Cargando proyectos..."
+                        : "Lista completa de proyectos y su estado actual."
+                    }
+                    proyectos={projects}
                     onDelete={deleteProject}
-                    onViewProject={handleViewDetails}
+                    onViewProject={(id) =>
+                      setProjectDetail(
+                        projects.find((project) => project.id === id)
+                      )
+                    }
                   />
                 </TabsContent>
                 <TabsContent value="activos">
                   <ProjectCardList
-                    titulo="Todos los Proyectos"
-                    descripcion="Lista de todos tus proyectos y su estado actual"
-                    proyectos={projects!}
+                    titulo="Proyectos activos"
+                    descripcion="Trabajo en curso y próximos vencimientos."
+                    proyectos={activeProjects}
                     onDelete={deleteProject}
-                    onViewProject={handleViewDetails}
+                    onViewProject={(id) =>
+                      setProjectDetail(
+                        projects.find((project) => project.id === id)
+                      )
+                    }
                   />
                 </TabsContent>
                 <TabsContent value="completados">
                   <ProjectCardList
-                    titulo="Todos los Proyectos"
-                    descripcion="Lista de todos tus proyectos y su estado actual"
-                    proyectos={projects!}
+                    titulo="Proyectos completados"
+                    descripcion="Historial de entregas finalizadas."
+                    proyectos={completedProjects}
                     onDelete={deleteProject}
-                    onViewProject={handleViewDetails}
+                    onViewProject={(id) =>
+                      setProjectDetail(
+                        projects.find((project) => project.id === id)
+                      )
+                    }
                   />
                 </TabsContent>
                 <TabsContent value="descontinuados">
                   <ProjectCardList
-                    titulo="Todos los Proyectos"
-                    descripcion="Lista de todos tus proyectos y su estado actual"
-                    proyectos={projects!}
+                    titulo="Proyectos descontinuados"
+                    descripcion="Proyectos pausados o cerrados sin continuidad."
+                    proyectos={discontinuedProjects}
                     onDelete={deleteProject}
-                    onViewProject={handleViewDetails}
+                    onViewProject={(id) =>
+                      setProjectDetail(
+                        projects.find((project) => project.id === id)
+                      )
+                    }
                   />
                 </TabsContent>
               </Tabs>
@@ -122,6 +179,7 @@ export default function ProyectosPage() {
       <ProjectModal
         projectDetail={projectDetail}
         setProjectDetail={setProjectDetail}
+        onDelete={deleteProject}
       />
     </>
   );

@@ -1,12 +1,13 @@
-import { NextResponse } from "next/server";
+import { AUTH_COOKIE_NAME } from "@/lib/constants";
+import { handleRouteError, jsonResponse } from "@/lib/http";
 
 export async function POST() {
   try {
-    const response = NextResponse.json({ message: "Logout successfully" });
+    const response = jsonResponse({ message: "Sesión cerrada correctamente" });
 
-    response.cookies.set("auth-token", "", {
+    response.cookies.set(AUTH_COOKIE_NAME, "", {
       httpOnly: true,
-      secure: process.env.NODE_ENV !== "production",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
       expires: new Date(0),
@@ -14,10 +15,6 @@ export async function POST() {
 
     return response;
   } catch (error) {
-    console.error("Error al hacer logout:", error);
-    return NextResponse.json(
-      { message: "Error al hacer logout" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "Error al cerrar sesión");
   }
 }

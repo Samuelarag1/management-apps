@@ -1,44 +1,40 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { errorResponse, handleRouteError, jsonResponse } from "@/lib/http";
+import { prisma } from "@/lib/prisma";
+import { serializeUser } from "@/lib/serializers";
+import { registerUserSchema } from "@/lib/validators";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, role } = await req.json();
+    const payload = registerUserSchema.parse(await req.json());
 
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: payload.email },
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { message: "El usuario ya existe" },
-        { status: 400 }
-      );
+      return errorResponse("Ya existe un usuario con ese email", 409);
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(payload.password, 10);
 
     const newUser = await prisma.user.create({
       data: {
-        email,
+        email: payload.email,
         password: hashedPassword,
-        role,
-        name: "Samuel",
+        role: payload.role,
+        name: payload.name,
       },
     });
 
-    return NextResponse.json(
-      { message: "Usuario registrado exitosamente", user: newUser },
-      { status: 201 }
+    return jsonResponse(
+      {
+        message: "Usuario registrado exitosamente",
+        user: serializeUser(newUser),
+      },
+      201
     );
   } catch (error) {
-    console.error("Error en el registro:", error);
-    return NextResponse.json(
-      { message: "Error al registrar el usuario", error },
-      { status: 500 }
-    );
+    return handleRouteError(error, "Error al registrar el usuario");
   }
 }

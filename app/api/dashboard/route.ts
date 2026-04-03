@@ -1,14 +1,39 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { Status } from "@prisma/client";
+import { handleRouteError, jsonResponse } from "@/lib/http";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const prisma = new PrismaClient();
+  try {
+    const [
+      projectCount,
+      activeProjectCount,
+      completedProjectCount,
+      clientCount,
+      revenueProjects,
+    ] = await Promise.all([
+      prisma.project.count(),
+      prisma.project.count({ where: { status: Status.activo } }),
+      prisma.project.count({ where: { status: Status.completo } }),
+      prisma.clients.count(),
+      prisma.project.findMany({
+        select: {
+          price: true,
+        },
+      }),
+    ]);
 
-  const dashboardSummary = {
-    projects: await prisma.project.count(),
-  };
+    const totalRevenue = revenueProjects.reduce((sum, project) => {
+      return sum + Number(project.price);
+    }, 0);
 
-  console.log(dashboardSummary);
-
-  return NextResponse.json(dashboardSummary);
+    return jsonResponse({
+      projectCount,
+      activeProjectCount,
+      completedProjectCount,
+      clientCount,
+      totalRevenue,
+    });
+  } catch (error) {
+    return handleRouteError(error, "Error al traer el resumen del dashboard");
+  }
 }

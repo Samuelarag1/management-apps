@@ -1,66 +1,53 @@
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { createAuthToken } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, AUTH_TOKEN_TTL_SECONDS } from "@/lib/constants";
+import { errorResponse, handleRouteError, jsonResponse } from "@/lib/http";
+import { prisma } from "@/lib/prisma";
+import { serializeUser } from "@/lib/serializers";
+import { loginSchema } from "@/lib/validators";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const payload = loginSchema.parse(await req.json());
 
-    // Buscar el usuario en la base de datos
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: payload.email },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { message: "Usuario no encontrado" },
-        { status: 404 }
-      );
+      return errorResponse("Credenciales inválidas", 401);
     }
 
-    // Verificar la contraseña
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(payload.password, user.password);
+
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { message: "Contraseña incorrecta" },
-        { status: 401 }
-      );
+      return errorResponse("Credenciales inválidas", 401);
     }
 
-    const token = jwt.sign(
+    const token = await createAuthToken({
+      sub: String(user.id),
+      email: user.email,
+      role: user.role,
+    });
+
+    const response = jsonResponse(
       {
-        sub: user.id,
-        email: user.email,
-        roles: user.role, // Asegúrate de que "roles" existe en Prisma
+        message: "Login exitoso",
+        user: serializeUser(user),
       },
-      process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
+      200
     );
 
-    const response = NextResponse.json(
-      { message: "Login exitoso" },
-      { status: 200 }
-    );
-
-    const cookieOptions = {
+    response.cookies.set(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60,
-      sameSite: "strict" as const,
-    };
-
-    response.cookies.set("auth_token", token, cookieOptions);
+      maxAge: AUTH_TOKEN_TTL_SECONDS,
+      sameSite: "strict",
+      path: "/",
+    });
 
     return response;
   } catch (error) {
-    console.error("Error en la autenticación:", error);
-
-    return NextResponse.json(
-      { message: "Error al autenticar al usuario", error: error },
-      { status: 500 }
-    );
+    return handleRouteError(error, "Error al autenticar al usuario");
   }
 }
