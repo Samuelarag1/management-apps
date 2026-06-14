@@ -135,15 +135,15 @@ export default function ClientesPage() {
                     Gestiona tus clientes y sus proyectos
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
+                <div className="flex w-full items-center gap-2 sm:w-auto">
+                  <div className="relative flex-1 sm:flex-initial">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Buscar cliente..."
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
-                      className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
+                      className="w-full appearance-none bg-background pl-8 shadow-none sm:w-[200px] lg:w-[280px]"
                     />
                   </div>
                   <ModalClients
@@ -185,86 +185,95 @@ export default function ClientesPage() {
                   </CardContent>
                 ) : (
                   <CardContent>
-                    <div className="grid gap-6">
+                    <div className="divide-y">
                       {filteredClients.map((client) => (
                         <div
                           key={client.id}
-                          className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center"
+                          className="flex min-w-0 items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"
                         >
-                          <div className="flex items-center gap-4">
-                            <Avatar className="h-12 w-12">
-                              <AvatarFallback>
+                          {/* Avatar + nombre */}
+                          <div className="flex min-w-0 items-center gap-3">
+                            <Avatar className="h-10 w-10 shrink-0">
+                              <AvatarFallback className="text-sm">
                                 {client.name.charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <h3 className="truncate font-semibold text-sm">
                                   {client.alias}
                                 </h3>
                                 <Badge
-                                  className={getClientStatusClassName(
-                                    client.status
-                                  )}
+                                  className={getClientStatusClassName(client.status)}
                                 >
                                   {client.status}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="truncate text-xs text-muted-foreground">
                                 {client.name}
                               </p>
+                              {/* Contacto — visible en mobile */}
+                              <div className="mt-1 flex flex-col gap-0.5 sm:hidden">
+                                {client.email && (
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Mail className="h-3 w-3 shrink-0" />
+                                    <span className="truncate">{client.email}</span>
+                                  </div>
+                                )}
+                                {client.phone_number && (
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Phone className="h-3 w-3 shrink-0" />
+                                    <span className="truncate">{client.phone_number}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-                          <div className="ml-0 flex flex-1 flex-col gap-2 sm:ml-4 md:flex-row md:items-center md:justify-between">
-                            <div className="grid gap-1">
-                              <div className="flex items-center text-sm">
-                                <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                                <span>{client.email ?? "Sin email"}</span>
-                              </div>
-                              <div className="flex items-center text-sm">
-                                <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                                <span>{client.phone_number ?? "Sin teléfono"}</span>
-                              </div>
-                              <div className="flex items-center text-sm">
-                                <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                                <span>{client.location ?? "Sin ubicación"}</span>
-                              </div>
+
+                          {/* Contacto — visible en desktop */}
+                          <div className="hidden min-w-0 flex-1 sm:grid sm:grid-cols-3 sm:gap-2">
+                            <div className="flex items-center gap-1.5 text-sm min-w-0">
+                              <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              <span className="truncate text-muted-foreground">{client.email ?? "—"}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <div className="text-sm">
-                                <span className="font-medium">
-                                  {client.projects.length}
-                                </span>{" "}
-                                proyectos
-                              </div>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Acciones</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() => setClientDetail(client)}
-                                  >
-                                    Ver detalles
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => setEditingClient(client)}
-                                  >
-                                    Editar cliente
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-destructive"
-                                    onClick={() => handleOnDelete(client.id)}
-                                  >
-                                    Eliminar cliente
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                            <div className="flex items-center gap-1.5 text-sm min-w-0">
+                              <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              <span className="truncate text-muted-foreground">{client.phone_number ?? "—"}</span>
                             </div>
+                            <div className="flex items-center gap-1.5 text-sm min-w-0">
+                              <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              <span className="truncate text-muted-foreground">{client.location ?? "—"}</span>
+                            </div>
+                          </div>
+
+                          {/* Acciones */}
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className="hidden text-xs text-muted-foreground sm:block">
+                              {client.projects.length} proy.
+                            </span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Acciones</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setClientDetail(client)}>
+                                  Ver detalles
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingClient(client)}>
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => handleOnDelete(client.id)}
+                                >
+                                  Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
                       ))}

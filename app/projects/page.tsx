@@ -126,20 +126,22 @@ export default function ProyectosPage() {
               </div>
 
               <Tabs defaultValue="todos" className="mt-6">
-                <TabsList>
-                  <TabsTrigger value="todos">
-                    Todos ({projects.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="activos">
-                    Activos ({activeProjects.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="completados">
-                    Completados ({completedProjects.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="descontinuados">
-                    Descontinuados ({discontinuedProjects.length})
-                  </TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto pb-1">
+                  <TabsList className="w-max">
+                    <TabsTrigger value="todos">
+                      Todos ({projects.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="activos">
+                      Activos ({activeProjects.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="completados">
+                      Completados ({completedProjects.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="descontinuados">
+                      Descontinuados ({discontinuedProjects.length})
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
                 <TabsContent value="todos">
                   <ProjectCardList
                     titulo="Todos los proyectos"

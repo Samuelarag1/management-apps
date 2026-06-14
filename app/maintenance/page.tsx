@@ -340,15 +340,15 @@ export default function MantenimientosPage() {
                   Servicios recurrentes que cobrás mes a mes
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
+              <div className="flex w-full items-center gap-2 sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Buscar..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
+                    className="w-full appearance-none bg-background pl-8 shadow-none sm:w-[200px] lg:w-[280px]"
                   />
                 </div>
                 <CreateMaintenance onCreated={handleCreated} />
