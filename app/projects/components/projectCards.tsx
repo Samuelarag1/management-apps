@@ -26,6 +26,7 @@ interface ProjectCardListProps {
   proyectos: ProjectRecord[];
   onDelete?: (id: string) => Promise<void>;
   onViewProject?: (id: string) => void;
+  onEditProject?: (id: string) => void;
 }
 
 function DomainRenewal({ value }: { value: ProjectRecord["domain"] }) {
@@ -51,6 +52,7 @@ const ProjectCardList = ({
   proyectos,
   onDelete,
   onViewProject,
+  onEditProject,
 }: ProjectCardListProps) => (
   <Card>
     <CardHeader>
@@ -105,8 +107,7 @@ const ProjectCardList = ({
                     >
                       Ver detalles
                     </DropdownMenuItem>
-                    <DropdownMenuItem disabled>Editar proyecto</DropdownMenuItem>
-                    <DropdownMenuItem disabled>Ver tareas</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEditProject?.(proyecto.id)}>Editar proyecto</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive"

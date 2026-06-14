@@ -1,6 +1,7 @@
 import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -34,8 +35,10 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
-        <Toaster position="top-center" richColors />
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Toaster position="top-center" richColors />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

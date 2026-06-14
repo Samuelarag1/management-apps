@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchJson } from "@/lib/api-client";
+import { createClient } from "@/lib/supabase/client";
 import { getClientStatusClassName } from "@/lib/status";
 import type { ClientRecord } from "@/types/entities";
 import { Button } from "@/components/ui/button";
@@ -30,11 +30,13 @@ import { useDeferredValue, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import SpinnerOverlay from "@/components/spinner-overlay";
 import { ClientModal } from "./components/userDetails";
+import { EditClient } from "./components/editClient";
 import { toast } from "sonner";
 
 export default function ClientesPage() {
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [clientDetail, setClientDetail] = useState<ClientRecord>();
+  const [editingClient, setEditingClient] = useState<ClientRecord>();
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,10 +47,16 @@ export default function ClientesPage() {
 
     async function loadClients() {
       try {
-        const data = await fetchJson<ClientRecord[]>("/api/clients");
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("clients")
+          .select("*, projects(id, name, status, finish_date)")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
 
         if (!cancelled) {
-          setClients(data);
+          setClients((data ?? []) as ClientRecord[]);
         }
       } catch (error) {
         if (!cancelled) {
@@ -66,34 +74,27 @@ export default function ClientesPage() {
     }
 
     loadClients();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const filteredClients = clients.filter((client) => {
     const query = deferredSearch.trim().toLowerCase();
-
-    if (!query) {
-      return true;
-    }
-
+    if (!query) return true;
     return [
       client.name,
       client.alias,
-      client.email,
+      client.email ?? "",
       client.location ?? "",
       client.phone_number ?? "",
     ].some((value) => value.toLowerCase().includes(query));
   });
 
-  const handleOnDelete = async (id: number) => {
+  const handleOnDelete = async (id: string) => {
     try {
       setIsDeleting(true);
-      await fetchJson<{ message: string }>(`/api/clients/${id}`, {
-        method: "DELETE",
-      });
+      const supabase = createClient();
+      const { error } = await supabase.from("clients").delete().eq("id", id);
+      if (error) throw error;
 
       setClients((prev) => prev.filter((client) => client.id !== id));
       setClientDetail((prev) => (prev?.id === id ? undefined : prev));
@@ -109,6 +110,12 @@ export default function ClientesPage() {
 
   const handleCreatedClient = (client: ClientRecord) => {
     setClients((prev) => [client, ...prev]);
+  };
+
+  const handleUpdatedClient = (updated: ClientRecord) => {
+    setClients((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    setClientDetail((prev) => (prev?.id === updated.id ? updated : prev));
+    setEditingClient(undefined);
   };
 
   return (
@@ -139,7 +146,6 @@ export default function ClientesPage() {
                       className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
                     />
                   </div>
-
                   <ModalClients
                     title="Nuevo cliente"
                     onCreated={handleCreatedClient}
@@ -172,7 +178,9 @@ export default function ClientesPage() {
                 ) : filteredClients.length === 0 ? (
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      No hay clientes que coincidan con la búsqueda actual.
+                      {clients.length === 0
+                        ? "Aún no tenés clientes. Creá el primero."
+                        : "No hay clientes que coincidan con la búsqueda."}
                     </p>
                   </CardContent>
                 ) : (
@@ -211,7 +219,7 @@ export default function ClientesPage() {
                             <div className="grid gap-1">
                               <div className="flex items-center text-sm">
                                 <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                                <span>{client.email}</span>
+                                <span>{client.email ?? "Sin email"}</span>
                               </div>
                               <div className="flex items-center text-sm">
                                 <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -242,11 +250,10 @@ export default function ClientesPage() {
                                   >
                                     Ver detalles
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem disabled>
+                                  <DropdownMenuItem
+                                    onClick={() => setEditingClient(client)}
+                                  >
                                     Editar cliente
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem disabled>
-                                    Ver proyectos
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -274,6 +281,17 @@ export default function ClientesPage() {
       <ClientModal
         clientDetail={clientDetail}
         setClientDetail={setClientDetail}
+        onDelete={handleOnDelete}
+        onEdit={(c) => {
+          setClientDetail(undefined);
+          setEditingClient(c);
+        }}
+      />
+      <EditClient
+        client={editingClient}
+        open={!!editingClient}
+        onOpenChange={(open) => { if (!open) setEditingClient(undefined); }}
+        onUpdated={handleUpdatedClient}
       />
     </>
   );

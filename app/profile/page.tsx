@@ -1,3 +1,6 @@
+"use client";
+
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,12 +17,103 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, Upload, Bell, Shield, CreditCard } from "lucide-react";
+import { User, Bell, CreditCard } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+interface ProfileMeta {
+  name?: string;
+  company?: string;
+  phone?: string;
+  city?: string;
+  country?: string;
+  address?: string;
+  bio?: string;
+  tax_id?: string;
+  legal_name?: string;
+  billing_address?: string;
+  billing_city?: string;
+  billing_zip?: string;
+  billing_country?: string;
+  currency?: string;
+  invoice_prefix?: string;
+  invoice_next_number?: string;
+  payment_terms?: string;
+}
 
 export default function PerfilPage() {
+  const [userEmail, setUserEmail] = useState("");
+  const [meta, setMeta] = useState<ProfileMeta>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserEmail(user.email ?? "");
+        setMeta((user.user_metadata as ProfileMeta) ?? {});
+      }
+      setIsLoading(false);
+    });
+  }, []);
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSaving(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ data: meta });
+      if (error) throw error;
+      toast.success("Perfil actualizado correctamente");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo actualizar el perfil"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword) {
+      toast.error("Ingresá una nueva contraseña");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
+    try {
+      setIsSaving(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success("Contraseña actualizada correctamente");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo cambiar la contraseña"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const initials = (meta.name ?? userEmail)
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  if (isLoading) return null;
+
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader />
@@ -65,27 +159,13 @@ export default function PerfilPage() {
                   <CardContent className="space-y-6">
                     <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
                       <Avatar className="h-24 w-24">
-                        <AvatarImage src="/profile.png" />
-                        <AvatarFallback>SA</AvatarFallback>
+                        <AvatarFallback className="text-2xl">
+                          {initials || "U"}
+                        </AvatarFallback>
                       </Avatar>
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-medium">Foto de Perfil</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Esta foto se mostrará en tu perfil y en tus facturas
-                        </p>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Cambiar Foto
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-destructive"
-                          >
-                            Eliminar
-                          </Button>
-                        </div>
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-medium">{meta.name ?? "Sin nombre"}</h3>
+                        <p className="text-sm text-muted-foreground">{userEmail}</p>
                       </div>
                     </div>
 
@@ -97,7 +177,10 @@ export default function PerfilPage() {
                         <Input
                           id="name"
                           placeholder="Tu nombre"
-                          defaultValue="Juan Pérez"
+                          value={meta.name ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, name: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -105,7 +188,10 @@ export default function PerfilPage() {
                         <Input
                           id="company"
                           placeholder="Tu empresa"
-                          defaultValue="JP Freelance"
+                          value={meta.company ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, company: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -113,8 +199,9 @@ export default function PerfilPage() {
                         <Input
                           id="email"
                           type="email"
-                          placeholder="tu@email.com"
-                          defaultValue="juan@example.com"
+                          value={userEmail}
+                          disabled
+                          className="opacity-60"
                         />
                       </div>
                       <div className="space-y-2">
@@ -122,15 +209,10 @@ export default function PerfilPage() {
                         <Input
                           id="phone"
                           placeholder="Tu teléfono"
-                          defaultValue="+34 612 345 678"
-                        />
-                      </div>
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="address">Dirección</Label>
-                        <Input
-                          id="address"
-                          placeholder="Tu dirección"
-                          defaultValue="Calle Principal 123"
+                          value={meta.phone ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, phone: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -138,7 +220,10 @@ export default function PerfilPage() {
                         <Input
                           id="city"
                           placeholder="Tu ciudad"
-                          defaultValue="Madrid"
+                          value={meta.city ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, city: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -146,7 +231,10 @@ export default function PerfilPage() {
                         <Input
                           id="country"
                           placeholder="Tu país"
-                          defaultValue="España"
+                          value={meta.country ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, country: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2 sm:col-span-2">
@@ -154,67 +242,56 @@ export default function PerfilPage() {
                         <Textarea
                           id="bio"
                           placeholder="Cuéntanos sobre ti"
-                          defaultValue="Desarrollador freelance con más de 5 años de experiencia en diseño web y desarrollo de aplicaciones móviles."
+                          value={meta.bio ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, bio: e.target.value }))
+                          }
                         />
                       </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end gap-2">
-                    <Button variant="outline">Cancelar</Button>
-                    <Button>Guardar Cambios</Button>
+                    <Button onClick={handleSaveProfile} disabled={isSaving}>
+                      {isSaving ? "Guardando..." : "Guardar Cambios"}
+                    </Button>
                   </CardFooter>
                 </Card>
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Seguridad de la Cuenta</CardTitle>
+                    <CardTitle>Cambiar Contraseña</CardTitle>
                     <CardDescription>
-                      Gestiona tu contraseña y la seguridad de tu cuenta
+                      Actualizá tu contraseña de acceso
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="current-password">
-                          Contraseña Actual
-                        </Label>
-                        <Input id="current-password" type="password" />
+                        <Label htmlFor="new-password">Nueva Contraseña</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="new-password">Nueva Contraseña</Label>
-                        <Input id="new-password" type="password" />
-                      </div>
-                      <div className="space-y-2 sm:col-span-2">
                         <Label htmlFor="confirm-password">
                           Confirmar Nueva Contraseña
                         </Label>
-                        <Input id="confirm-password" type="password" />
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">
-                        Autenticación de Dos Factores
-                      </h3>
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center">
-                            <Shield className="mr-2 h-4 w-4 text-muted-foreground" />
-                            <span>Autenticación de Dos Factores</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Añade una capa adicional de seguridad a tu cuenta
-                          </p>
-                        </div>
-                        <Switch />
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-end gap-2">
-                    <Button variant="outline">Cancelar</Button>
-                    <Button>Actualizar Seguridad</Button>
+                  <CardFooter className="flex justify-end">
+                    <Button onClick={handleChangePassword} disabled={isSaving}>
+                      Actualizar Contraseña
+                    </Button>
                   </CardFooter>
                 </Card>
               </TabsContent>
@@ -224,98 +301,38 @@ export default function PerfilPage() {
                   <CardHeader>
                     <CardTitle>Preferencias de Notificaciones</CardTitle>
                     <CardDescription>
-                      Configura cómo y cuándo quieres recibir notificaciones
+                      Próximamente disponible
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Notificaciones por Correo</h3>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="email-projects">
-                              Actualizaciones de Proyectos
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Recibe notificaciones cuando haya cambios en tus
-                              proyectos
-                            </p>
-                          </div>
-                          <Switch id="email-projects" defaultChecked />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="email-tasks">
-                              Tareas Pendientes
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Recibe recordatorios de tareas próximas a vencer
-                            </p>
-                          </div>
-                          <Switch id="email-tasks" defaultChecked />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="email-invoices">
-                              Facturas y Pagos
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Recibe notificaciones sobre facturas pagadas o
-                              pendientes
-                            </p>
-                          </div>
-                          <Switch id="email-invoices" defaultChecked />
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Actualizaciones de Proyectos</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Recibe notificaciones de cambios en proyectos
+                        </p>
                       </div>
+                      <Switch defaultChecked />
                     </div>
-
-                    <Separator />
-
-                    <div className="space-y-4">
-                      <h3 className="font-medium">
-                        Notificaciones en la Aplicación
-                      </h3>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="app-projects">
-                              Actualizaciones de Proyectos
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Muestra notificaciones en la aplicación para
-                              cambios en proyectos
-                            </p>
-                          </div>
-                          <Switch id="app-projects" defaultChecked />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="app-tasks">Tareas Pendientes</Label>
-                            <p className="text-sm text-muted-foreground">
-                              Muestra recordatorios de tareas en la aplicación
-                            </p>
-                          </div>
-                          <Switch id="app-tasks" defaultChecked />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="app-invoices">
-                              Facturas y Pagos
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                              Muestra notificaciones sobre facturas en la
-                              aplicación
-                            </p>
-                          </div>
-                          <Switch id="app-invoices" defaultChecked />
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Tareas Pendientes</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Recordatorios de tareas próximas a vencer
+                        </p>
                       </div>
+                      <Switch defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Facturas y Pagos</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Notificaciones sobre facturas y cobros
+                        </p>
+                      </div>
+                      <Switch defaultChecked />
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-end gap-2">
-                    <Button variant="outline">Restablecer Valores</Button>
-                    <Button>Guardar Preferencias</Button>
-                  </CardFooter>
                 </Card>
               </TabsContent>
 
@@ -324,17 +341,20 @@ export default function PerfilPage() {
                   <CardHeader>
                     <CardTitle>Información de Facturación</CardTitle>
                     <CardDescription>
-                      Gestiona tus datos fiscales y de facturación
+                      Tus datos fiscales y configuración de facturas
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="tax-id">NIF / CIF</Label>
+                        <Label htmlFor="tax-id">CUIT / NIF / ID Fiscal</Label>
                         <Input
                           id="tax-id"
                           placeholder="Tu identificación fiscal"
-                          defaultValue="B12345678"
+                          value={meta.tax_id ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, tax_id: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -344,17 +364,10 @@ export default function PerfilPage() {
                         <Input
                           id="legal-name"
                           placeholder="Nombre legal"
-                          defaultValue="JP Freelance Solutions S.L."
-                        />
-                      </div>
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="billing-address">
-                          Dirección Fiscal
-                        </Label>
-                        <Input
-                          id="billing-address"
-                          placeholder="Dirección fiscal"
-                          defaultValue="Calle Principal 123"
+                          value={meta.legal_name ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, legal_name: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -362,15 +375,10 @@ export default function PerfilPage() {
                         <Input
                           id="billing-city"
                           placeholder="Ciudad"
-                          defaultValue="Madrid"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="billing-zip">Código Postal</Label>
-                        <Input
-                          id="billing-zip"
-                          placeholder="Código postal"
-                          defaultValue="28001"
+                          value={meta.billing_city ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, billing_city: e.target.value }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -378,15 +386,24 @@ export default function PerfilPage() {
                         <Input
                           id="billing-country"
                           placeholder="País"
-                          defaultValue="España"
+                          value={meta.billing_country ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({
+                              ...m,
+                              billing_country: e.target.value,
+                            }))
+                          }
                         />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="currency">Moneda Predeterminada</Label>
                         <Input
                           id="currency"
-                          placeholder="Moneda"
-                          defaultValue="EUR"
+                          placeholder="ARS / USD / EUR"
+                          value={meta.currency ?? ""}
+                          onChange={(e) =>
+                            setMeta((m) => ({ ...m, currency: e.target.value }))
+                          }
                         />
                       </div>
                     </div>
@@ -397,21 +414,31 @@ export default function PerfilPage() {
                       <h3 className="font-medium">Plantilla de Factura</h3>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
-                          <Label htmlFor="invoice-prefix">
-                            Prefijo de Factura
-                          </Label>
+                          <Label htmlFor="invoice-prefix">Prefijo</Label>
                           <Input
                             id="invoice-prefix"
-                            placeholder="Prefijo"
-                            defaultValue="INV-"
+                            placeholder="INV-"
+                            value={meta.invoice_prefix ?? ""}
+                            onChange={(e) =>
+                              setMeta((m) => ({
+                                ...m,
+                                invoice_prefix: e.target.value,
+                              }))
+                            }
                           />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="next-number">Próximo Número</Label>
                           <Input
                             id="next-number"
-                            placeholder="Número"
-                            defaultValue="005"
+                            placeholder="001"
+                            value={meta.invoice_next_number ?? ""}
+                            onChange={(e) =>
+                              setMeta((m) => ({
+                                ...m,
+                                invoice_next_number: e.target.value,
+                              }))
+                            }
                           />
                         </div>
                         <div className="space-y-2 sm:col-span-2">
@@ -420,16 +447,23 @@ export default function PerfilPage() {
                           </Label>
                           <Textarea
                             id="payment-terms"
-                            placeholder="Condiciones de pago"
-                            defaultValue="Pago a 30 días desde la fecha de emisión de la factura. Transferencia bancaria a la cuenta indicada."
+                            placeholder="Pago a 30 días, transferencia bancaria..."
+                            value={meta.payment_terms ?? ""}
+                            onChange={(e) =>
+                              setMeta((m) => ({
+                                ...m,
+                                payment_terms: e.target.value,
+                              }))
+                            }
                           />
                         </div>
                       </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end gap-2">
-                    <Button variant="outline">Cancelar</Button>
-                    <Button>Guardar Información</Button>
+                    <Button onClick={handleSaveProfile} disabled={isSaving}>
+                      {isSaving ? "Guardando..." : "Guardar Información"}
+                    </Button>
                   </CardFooter>
                 </Card>
               </TabsContent>

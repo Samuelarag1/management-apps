@@ -1,3 +1,7 @@
+"use client";
+
+import { createClient } from "@/lib/supabase/client";
+import type { InvoiceRecord, InvoiceStatus } from "@/types/entities";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +14,7 @@ import { DashboardHeader } from "@/components/dashboard-header";
 import { MobileNav } from "@/components/mobile-nav";
 import { Sidebar } from "@/components/sidebar";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, MoreHorizontal, Download, Send } from "lucide-react";
+import { Search, MoreHorizontal, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,55 +24,238 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CreateInvoice } from "./components/createInvoice";
+import { useDeferredValue, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { formatPrice } from "@/utils/numberUtils";
+
+const STATUS_LABELS: Record<InvoiceStatus, string> = {
+  borrador: "Borrador",
+  enviada: "Enviada",
+  pagada: "Pagada",
+  vencida: "Vencida",
+};
+
+function statusVariant(status: InvoiceStatus): "outline" | "default" | "secondary" | "destructive" {
+  if (status === "pagada") return "outline";
+  if (status === "enviada") return "default";
+  if (status === "vencida") return "destructive";
+  return "secondary";
+}
+
+function InvoiceRow({
+  invoice,
+  onMarkPaid,
+  onDelete,
+}: {
+  invoice: InvoiceRecord;
+  onMarkPaid: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-7 gap-4 p-4 items-center">
+      <div className="font-medium text-sm">
+        {invoice.invoice_number ?? "—"}
+      </div>
+      <div className="text-sm">{invoice.clients?.alias ?? "—"}</div>
+      <div className="text-sm">{invoice.projects?.name ?? "—"}</div>
+      <div className="text-sm">
+        {new Date(invoice.issue_date + "T00:00:00").toLocaleDateString("es-AR", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })}
+      </div>
+      <div className="font-medium text-sm">{formatPrice(invoice.total)}</div>
+      <div>
+        <Badge variant={statusVariant(invoice.status)}>
+          {STATUS_LABELS[invoice.status]}
+        </Badge>
+      </div>
+      <div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Acciones</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem disabled>
+              <Download className="mr-2 h-4 w-4" />
+              Descargar PDF
+            </DropdownMenuItem>
+            {invoice.status !== "pagada" && (
+              <DropdownMenuItem onClick={() => onMarkPaid(invoice.id)}>
+                Registrar pago
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => onDelete(invoice.id)}
+            >
+              Eliminar factura
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+}
+
+function InvoiceTable({
+  title,
+  description,
+  invoices,
+  onMarkPaid,
+  onDelete,
+  isLoading,
+}: {
+  title: string;
+  description: string;
+  invoices: InvoiceRecord[];
+  onMarkPaid: (id: string) => void;
+  onDelete: (id: string) => void;
+  isLoading: boolean;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : invoices.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No hay facturas aquí.</p>
+        ) : (
+          <div className="rounded-md border">
+            <div className="grid grid-cols-7 gap-4 p-4 font-medium text-sm text-muted-foreground">
+              <div>N° Factura</div>
+              <div>Cliente</div>
+              <div>Proyecto</div>
+              <div>Fecha</div>
+              <div>Total</div>
+              <div>Estado</div>
+              <div>Acciones</div>
+            </div>
+            <div className="divide-y">
+              {invoices.map((invoice) => (
+                <InvoiceRow
+                  key={invoice.id}
+                  invoice={invoice}
+                  onMarkPaid={onMarkPaid}
+                  onDelete={onDelete}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function FacturasPage() {
-  const facturas = [
-    {
-      id: "INV-001",
-      cliente: "Acme Inc",
-      proyecto: "Rediseño Web",
-      fecha: "01 Abril 2025",
-      vencimiento: "01 Mayo 2025",
-      monto: "$1,200",
-      estado: "Pagada",
-    },
-    {
-      id: "INV-002",
-      cliente: "TechCorp",
-      proyecto: "App Móvil",
-      fecha: "15 Abril 2025",
-      vencimiento: "15 Mayo 2025",
-      monto: "$850",
-      estado: "Pendiente",
-    },
-    {
-      id: "INV-003",
-      cliente: "GlobalBiz",
-      proyecto: "Campaña Marketing",
-      fecha: "22 Abril 2025",
-      vencimiento: "22 Mayo 2025",
-      monto: "$1,500",
-      estado: "Pagada",
-    },
-    {
-      id: "INV-004",
-      cliente: "LocalShop",
-      proyecto: "Tienda Online",
-      fecha: "30 Abril 2025",
-      vencimiento: "30 Mayo 2025",
-      monto: "$700",
-      estado: "Vencida",
-    },
-    {
-      id: "INV-005",
-      cliente: "Innovate Labs",
-      proyecto: "Identidad Corporativa",
-      fecha: "05 Abril 2025",
-      vencimiento: "05 Mayo 2025",
-      monto: "$1,800",
-      estado: "Pagada",
-    },
-  ];
+  const [invoices, setInvoices] = useState<InvoiceRecord[]>([]);
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadInvoices() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("invoices")
+          .select("*, clients(name, alias), projects(name)")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        if (!cancelled) setInvoices((data ?? []) as InvoiceRecord[]);
+      } catch (error) {
+        if (!cancelled)
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "No se pudieron cargar las facturas"
+          );
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    loadInvoices();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleMarkPaid = async (id: string) => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("invoices")
+        .update({ status: "pagada" })
+        .eq("id", id);
+      if (error) throw error;
+      setInvoices((prev) =>
+        prev.map((inv) => (inv.id === id ? { ...inv, status: "pagada" } : inv))
+      );
+      toast.success("Pago registrado");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo registrar el pago"
+      );
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("invoices").delete().eq("id", id);
+      if (error) throw error;
+      setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+      toast.success("Factura eliminada");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo eliminar la factura"
+      );
+    }
+  };
+
+  const handleCreated = (invoice: InvoiceRecord) => {
+    setInvoices((prev) => [invoice, ...prev]);
+  };
+
+  const filtered = invoices.filter((inv) => {
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return true;
+    return [
+      inv.invoice_number ?? "",
+      inv.clients?.alias ?? "",
+      inv.projects?.name ?? "",
+    ].some((v) => v.toLowerCase().includes(q));
+  });
+
+  const pending = filtered.filter((inv) => inv.status === "enviada" || inv.status === "borrador");
+  const paid = filtered.filter((inv) => inv.status === "pagada");
+  const overdue = filtered.filter((inv) => inv.status === "vencida");
+
+  const totalFacturado = invoices.reduce((sum, inv) => sum + inv.total, 0);
+  const totalCobrado = invoices
+    .filter((inv) => inv.status === "pagada")
+    .reduce((sum, inv) => sum + inv.total, 0);
+  const totalPendiente = invoices
+    .filter((inv) => inv.status !== "pagada")
+    .reduce((sum, inv) => sum + inv.total, 0);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -92,13 +279,12 @@ export default function FacturasPage() {
                   <Input
                     type="search"
                     placeholder="Buscar factura..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                     className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
                   />
                 </div>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nueva Factura
-                </Button>
+                <CreateInvoice onCreated={handleCreated} />
               </div>
             </div>
 
@@ -110,9 +296,11 @@ export default function FacturasPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">$6,050</div>
+                  <div className="text-2xl font-bold">
+                    {formatPrice(totalFacturado)}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    +12% respecto al mes anterior
+                    {invoices.length} facturas en total
                   </p>
                 </CardContent>
               </Card>
@@ -123,9 +311,11 @@ export default function FacturasPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">$4,500</div>
+                  <div className="text-2xl font-bold">
+                    {formatPrice(totalCobrado)}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    74% del total facturado
+                    {paid.length} facturas pagadas
                   </p>
                 </CardContent>
               </Card>
@@ -136,9 +326,11 @@ export default function FacturasPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">$1,550</div>
+                  <div className="text-2xl font-bold">
+                    {formatPrice(totalPendiente)}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    26% del total facturado
+                    {overdue.length} vencidas / {pending.length} por cobrar
                   </p>
                 </CardContent>
               </Card>
@@ -149,320 +341,66 @@ export default function FacturasPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">5</div>
-                  <p className="text-xs text-muted-foreground">Este mes</p>
+                  <div className="text-2xl font-bold">{invoices.length}</div>
+                  <p className="text-xs text-muted-foreground">En total</p>
                 </CardContent>
               </Card>
             </div>
 
             <Tabs defaultValue="todas" className="mt-6">
               <TabsList>
-                <TabsTrigger value="todas">Todas</TabsTrigger>
-                <TabsTrigger value="pendientes">Pendientes</TabsTrigger>
-                <TabsTrigger value="pagadas">Pagadas</TabsTrigger>
-                <TabsTrigger value="vencidas">Vencidas</TabsTrigger>
+                <TabsTrigger value="todas">
+                  Todas ({filtered.length})
+                </TabsTrigger>
+                <TabsTrigger value="pendientes">
+                  Pendientes ({pending.length})
+                </TabsTrigger>
+                <TabsTrigger value="pagadas">
+                  Pagadas ({paid.length})
+                </TabsTrigger>
+                <TabsTrigger value="vencidas">
+                  Vencidas ({overdue.length})
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="todas" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Todas las Facturas</CardTitle>
-                    <CardDescription>
-                      Lista de todas tus facturas y su estado actual
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="grid grid-cols-7 gap-4 p-4 font-medium">
-                        <div>Nº Factura</div>
-                        <div>Cliente</div>
-                        <div>Proyecto</div>
-                        <div>Fecha</div>
-                        <div>Monto</div>
-                        <div>Estado</div>
-                        <div>Acciones</div>
-                      </div>
-                      <div className="divide-y">
-                        {facturas.map((factura) => (
-                          <div
-                            key={factura.id}
-                            className="grid grid-cols-7 gap-4 p-4 items-center"
-                          >
-                            <div className="font-medium">{factura.id}</div>
-                            <div>{factura.cliente}</div>
-                            <div>{factura.proyecto}</div>
-                            <div>{factura.fecha}</div>
-                            <div>{factura.monto}</div>
-                            <div>
-                              <Badge
-                                variant={
-                                  factura.estado === "Pagada"
-                                    ? "outline"
-                                    : factura.estado === "Pendiente"
-                                    ? "default"
-                                    : "destructive"
-                                }
-                              >
-                                {factura.estado}
-                              </Badge>
-                            </div>
-                            <div>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Acciones</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
-                                    Ver detalles
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Descargar PDF
-                                  </DropdownMenuItem>
-                                  {factura.estado !== "Pagada" && (
-                                    <DropdownMenuItem>
-                                      Registrar pago
-                                    </DropdownMenuItem>
-                                  )}
-                                  {factura.estado === "Pendiente" && (
-                                    <DropdownMenuItem>
-                                      <Send className="mr-2 h-4 w-4" />
-                                      Enviar recordatorio
-                                    </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive">
-                                    Eliminar factura
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <InvoiceTable
+                  title="Todas las Facturas"
+                  description="Lista de todas tus facturas y su estado actual"
+                  invoices={filtered}
+                  onMarkPaid={handleMarkPaid}
+                  onDelete={handleDelete}
+                  isLoading={isLoading}
+                />
               </TabsContent>
               <TabsContent value="pendientes" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Facturas Pendientes</CardTitle>
-                    <CardDescription>
-                      Facturas pendientes de pago
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="grid grid-cols-7 gap-4 p-4 font-medium">
-                        <div>Nº Factura</div>
-                        <div>Cliente</div>
-                        <div>Proyecto</div>
-                        <div>Fecha</div>
-                        <div>Monto</div>
-                        <div>Estado</div>
-                        <div>Acciones</div>
-                      </div>
-                      <div className="divide-y">
-                        {facturas
-                          .filter((factura) => factura.estado === "Pendiente")
-                          .map((factura) => (
-                            <div
-                              key={factura.id}
-                              className="grid grid-cols-7 gap-4 p-4 items-center"
-                            >
-                              <div className="font-medium">{factura.id}</div>
-                              <div>{factura.cliente}</div>
-                              <div>{factura.proyecto}</div>
-                              <div>{factura.fecha}</div>
-                              <div>{factura.monto}</div>
-                              <div>
-                                <Badge variant="default">
-                                  {factura.estado}
-                                </Badge>
-                              </div>
-                              <div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">Acciones</span>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                      Ver detalles
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Download className="mr-2 h-4 w-4" />
-                                      Descargar PDF
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      Registrar pago
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Send className="mr-2 h-4 w-4" />
-                                      Enviar recordatorio
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                      Eliminar factura
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <InvoiceTable
+                  title="Facturas Pendientes"
+                  description="Facturas en borrador o enviadas aún sin pagar"
+                  invoices={pending}
+                  onMarkPaid={handleMarkPaid}
+                  onDelete={handleDelete}
+                  isLoading={isLoading}
+                />
               </TabsContent>
               <TabsContent value="pagadas" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Facturas Pagadas</CardTitle>
-                    <CardDescription>
-                      Facturas con pago recibido
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="grid grid-cols-7 gap-4 p-4 font-medium">
-                        <div>Nº Factura</div>
-                        <div>Cliente</div>
-                        <div>Proyecto</div>
-                        <div>Fecha</div>
-                        <div>Monto</div>
-                        <div>Estado</div>
-                        <div>Acciones</div>
-                      </div>
-                      <div className="divide-y">
-                        {facturas
-                          .filter((factura) => factura.estado === "Pagada")
-                          .map((factura) => (
-                            <div
-                              key={factura.id}
-                              className="grid grid-cols-7 gap-4 p-4 items-center"
-                            >
-                              <div className="font-medium">{factura.id}</div>
-                              <div>{factura.cliente}</div>
-                              <div>{factura.proyecto}</div>
-                              <div>{factura.fecha}</div>
-                              <div>{factura.monto}</div>
-                              <div>
-                                <Badge variant="outline">
-                                  {factura.estado}
-                                </Badge>
-                              </div>
-                              <div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">Acciones</span>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                      Ver detalles
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Download className="mr-2 h-4 w-4" />
-                                      Descargar PDF
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      Generar recibo
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                      Eliminar factura
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <InvoiceTable
+                  title="Facturas Pagadas"
+                  description="Facturas con pago recibido"
+                  invoices={paid}
+                  onMarkPaid={handleMarkPaid}
+                  onDelete={handleDelete}
+                  isLoading={isLoading}
+                />
               </TabsContent>
               <TabsContent value="vencidas" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Facturas Vencidas</CardTitle>
-                    <CardDescription>
-                      Facturas con fecha de pago vencida
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="grid grid-cols-7 gap-4 p-4 font-medium">
-                        <div>Nº Factura</div>
-                        <div>Cliente</div>
-                        <div>Proyecto</div>
-                        <div>Fecha</div>
-                        <div>Monto</div>
-                        <div>Estado</div>
-                        <div>Acciones</div>
-                      </div>
-                      <div className="divide-y">
-                        {facturas
-                          .filter((factura) => factura.estado === "Vencida")
-                          .map((factura) => (
-                            <div
-                              key={factura.id}
-                              className="grid grid-cols-7 gap-4 p-4 items-center"
-                            >
-                              <div className="font-medium">{factura.id}</div>
-                              <div>{factura.cliente}</div>
-                              <div>{factura.proyecto}</div>
-                              <div>{factura.fecha}</div>
-                              <div>{factura.monto}</div>
-                              <div>
-                                <Badge variant="destructive">
-                                  {factura.estado}
-                                </Badge>
-                              </div>
-                              <div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">Acciones</span>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                      Ver detalles
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Download className="mr-2 h-4 w-4" />
-                                      Descargar PDF
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      Registrar pago
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Send className="mr-2 h-4 w-4" />
-                                      Enviar recordatorio
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                      Eliminar factura
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <InvoiceTable
+                  title="Facturas Vencidas"
+                  description="Facturas con fecha de pago vencida"
+                  invoices={overdue}
+                  onMarkPaid={handleMarkPaid}
+                  onDelete={handleDelete}
+                  isLoading={isLoading}
+                />
               </TabsContent>
             </Tabs>
           </div>

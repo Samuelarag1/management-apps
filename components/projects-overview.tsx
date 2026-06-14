@@ -1,4 +1,3 @@
-import type { Status } from "@prisma/client";
 import { getProjectStatusClassName, getProjectStatusLabel } from "@/lib/status";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/utils/dateUtils";
@@ -7,7 +6,7 @@ interface ProjectsOverviewItem {
   id: string;
   name: string;
   client: string | null;
-  status: Status | null;
+  status: string | null;
   finishDate: string | null;
 }
 

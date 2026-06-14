@@ -7,61 +7,33 @@ import { formatPrice } from "@/utils/numberUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { LucidePencil, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 interface ProjectModalProps {
   projectDetail: ProjectRecord | undefined;
   setProjectDetail: (project: ProjectRecord | undefined) => void;
   onDelete?: (projectId: string) => Promise<void>;
+  onEdit?: (project: ProjectRecord) => void;
 }
 
 export function ProjectModal({
   projectDetail,
   setProjectDetail,
   onDelete,
+  onEdit,
 }: ProjectModalProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
-        setProjectDetail(undefined);
-      }
-    }
-
-    function handleEsc(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setProjectDetail(undefined);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEsc);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEsc);
-    };
-  }, [setProjectDetail]);
-
-  if (!projectDetail) {
-    return null;
-  }
-
   const handleDelete = async () => {
-    if (!onDelete) {
-      return;
-    }
-
+    if (!onDelete || !projectDetail) return;
     try {
       setIsDeleting(true);
       await onDelete(projectDetail.id);
@@ -72,100 +44,82 @@ export function ProjectModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4">
-      <div ref={cardRef}>
-        <Card className="w-full max-w-md">
-          <CardHeader className="font-bold">
-            Detalle de {projectDetail.name}
-            <CardDescription className="font-normal">
-              {projectDetail.description ?? "Sin descripción"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Badge className={getProjectStatusClassName(projectDetail.status)}>
-              {getProjectStatusLabel(projectDetail.status)}
-            </Badge>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Cliente:</p>
-              <p className="text-sm font-semibold">
-                {projectDetail.client?.alias ?? projectDetail.client?.name ?? "-"}
-              </p>
+    <Dialog
+      open={!!projectDetail}
+      onOpenChange={(open) => { if (!open) setProjectDetail(undefined); }}
+    >
+      <DialogContent className="sm:max-w-[440px]">
+        <DialogHeader>
+          <DialogTitle>{projectDetail?.name}</DialogTitle>
+          <DialogDescription>
+            {projectDetail?.description ?? "Sin descripción"}
+          </DialogDescription>
+        </DialogHeader>
+
+        {projectDetail && (
+          <div className="space-y-3 text-sm">
+            <div>
+              <Badge className={getProjectStatusClassName(projectDetail.status)}>
+                {getProjectStatusLabel(projectDetail.status)}
+              </Badge>
             </div>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Inicio:</p>
-              <p className="text-sm font-semibold">
-                {formatDate(projectDetail.initial_date)}
-              </p>
+            <Separator />
+            <Row label="Cliente">
+              {projectDetail.client?.alias ?? projectDetail.client?.name ?? "—"}
+            </Row>
+            <Separator />
+            <Row label="Inicio">{formatDate(projectDetail.initial_date)}</Row>
+            <Separator />
+            <Row label="Entrega">{formatDate(projectDetail.finish_date)}</Row>
+            <Separator />
+            <Row label="Dominio">{formatDate(projectDetail.domain)}</Row>
+            <Separator />
+            <Row label="Hosting">{formatDate(projectDetail.hosting)}</Row>
+            <Separator />
+            <Row label="Cloud storage">
+              {projectDetail.cloud_storage ? "Sí" : "No"}
+            </Row>
+            <Separator />
+            <Row label="Pago anticipado">
+              {formatPrice(projectDetail.pre_payment)}
+            </Row>
+            <Separator />
+            <Row label="Precio">{formatPrice(projectDetail.price)}</Row>
+
+            <div className="flex justify-between pt-2">
+              <div />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onEdit?.(projectDetail)}
+                >
+                  <LucidePencil className="h-4 w-4" />
+                  <span className="sr-only">Editar</span>
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Eliminar</span>
+                </Button>
+              </div>
             </div>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Entrega:</p>
-              <p className="text-sm font-semibold">
-                {formatDate(projectDetail.finish_date)}
-              </p>
-            </div>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Dominio:</p>
-              <p className="text-sm font-semibold">
-                {formatDate(projectDetail.domain)}
-              </p>
-            </div>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Hosting:</p>
-              <p className="text-sm font-semibold">
-                {formatDate(projectDetail.hosting)}
-              </p>
-            </div>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Cloud storage:</p>
-              <p className="text-sm font-semibold">
-                {projectDetail.cloud_storage ? "Sí" : "No"}
-              </p>
-            </div>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Pago anticipado:</p>
-              <p className="text-sm font-semibold">
-                {formatPrice(projectDetail.pre_payment)}
-              </p>
-            </div>
-            <hr />
-            <div className="flex items-center justify-between gap-4">
-              <p>Precio:</p>
-              <p className="text-sm font-semibold">
-                {formatPrice(projectDetail.price)}
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button asChild className="bg-blue-500 hover:bg-blue-600">
-              <Link href="/tasks">Tareas</Link>
-            </Button>
-            <div className="flex gap-2">
-              <Button
-                className="bg-blue-600 hover:bg-blue-700"
-                size="icon"
-                disabled
-              >
-                <LucidePencil />
-              </Button>
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={handleDelete}
-                disabled={isDeleting}
-              >
-                <Trash2 />
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold text-right">{children}</span>
     </div>
   );
 }

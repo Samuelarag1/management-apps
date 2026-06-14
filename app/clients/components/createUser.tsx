@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchJson } from "@/lib/api-client";
+import { createClient } from "@/lib/supabase/client";
 import type { ClientRecord } from "@/types/entities";
 import SpinnerOverlay from "@/components/spinner-overlay";
 import { Button } from "@/components/ui/button";
@@ -47,21 +47,30 @@ export function ModalClients({ title, onCreated }: ModalClientsProps) {
     handleSubmit,
     reset,
     formState: { isSubmitting },
-  } = useForm<ClientFormValues>({
-    defaultValues,
-  });
+  } = useForm<ClientFormValues>({ defaultValues });
 
   const onSubmit: SubmitHandler<ClientFormValues> = async (data) => {
     try {
-      const client = await fetchJson<ClientRecord>("/api/clients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No autenticado");
 
-      onCreated?.(client);
+      const { data: client, error } = await supabase
+        .from("clients")
+        .insert({
+          user_id: user.id,
+          name: data.name,
+          alias: data.alias,
+          email: data.email || null,
+          phone_number: data.phone_number || null,
+          location: data.location || null,
+        })
+        .select("*, projects(id, name, status, finish_date)")
+        .single();
+
+      if (error) throw error;
+
+      onCreated?.(client as ClientRecord);
       toast.success("Cliente creado exitosamente");
       setOpen(false);
       reset(defaultValues);
@@ -74,10 +83,7 @@ export function ModalClients({ title, onCreated }: ModalClientsProps) {
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-
-    if (!nextOpen) {
-      reset(defaultValues);
-    }
+    if (!nextOpen) reset(defaultValues);
   };
 
   return (
@@ -128,7 +134,6 @@ export function ModalClients({ title, onCreated }: ModalClientsProps) {
               type="email"
               placeholder="email@email.com"
               className="col-span-3"
-              required
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

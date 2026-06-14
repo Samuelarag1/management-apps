@@ -1,6 +1,4 @@
-import type { Status } from "@prisma/client";
-
-export function getProjectStatusLabel(status: Status | null | undefined) {
+export function getProjectStatusLabel(status: string | null | undefined) {
   switch (status) {
     case "activo":
       return "Activo";
@@ -13,7 +11,7 @@ export function getProjectStatusLabel(status: Status | null | undefined) {
   }
 }
 
-export function getProjectStatusClassName(status: Status | null | undefined) {
+export function getProjectStatusClassName(status: string | null | undefined) {
   switch (status) {
     case "completo":
       return "bg-green-700 text-white";

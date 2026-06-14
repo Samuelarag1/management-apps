@@ -1,7 +1,6 @@
 "use client";
 
-import { fetchJson } from "@/lib/api-client";
-import type { UserRecord } from "@/types/entities";
+import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -31,22 +30,21 @@ export default function LoginPage() {
       setLoading(true);
       setError("");
 
-      await fetchJson<{ message: string; user: UserRecord }>("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+
+      if (error) {
+        setError("Credenciales incorrectas. Revisá tu email y contraseña.");
+        return;
+      }
 
       router.push("/");
       router.refresh();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Credenciales incorrectas. Inténtalo de nuevo."
-      );
+    } catch {
+      setError("Ocurrió un error inesperado. Intentá de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -93,17 +91,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Contraseña</Label>
-                    <Button
-                      variant="link"
-                      className="h-auto p-0 text-xs"
-                      type="button"
-                      disabled
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </Button>
-                  </div>
+                  <Label htmlFor="password">Contraseña</Label>
                   <Input
                     id="password"
                     type="password"

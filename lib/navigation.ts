@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Settings,
   Users,
+  Wrench,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -22,6 +23,7 @@ export const primaryNavigation: NavigationItem[] = [
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/tasks", label: "Tareas", icon: CheckSquare },
   { href: "/invoices", label: "Facturación", icon: CreditCard },
+  { href: "/maintenance", label: "Mantenimientos", icon: Wrench },
   { href: "/time", label: "Registro de trabajo", icon: Clock },
   { href: "/calendar", label: "Calendario", icon: CalendarDays },
   { href: "/profile", label: "Configuración", icon: Settings },

@@ -11,7 +11,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,76 +42,65 @@ interface ProjectFormValues {
   client_id: string;
 }
 
-interface ModalProjectsProps {
-  onCreated?: (project: ProjectRecord) => void;
+interface EditProjectProps {
+  project: ProjectRecord | undefined;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdated: (project: ProjectRecord) => void;
 }
 
-const defaultValues: ProjectFormValues = {
-  name: "",
-  price: 0,
-  description: "",
-  pre_payment: "",
-  finish_date: "",
-  status: "activo",
-  initial_date: "",
-  hosting: "",
-  domain: "",
-  cloud_storage: false,
-  cloud_storage_date: "",
-  client_id: "",
-};
+function toFormValues(p: ProjectRecord): ProjectFormValues {
+  return {
+    name: p.name,
+    price: p.price ?? 0,
+    description: p.description ?? "",
+    pre_payment: p.pre_payment != null ? String(p.pre_payment) : "",
+    finish_date: p.finish_date ?? "",
+    status: p.status ?? "activo",
+    initial_date: p.initial_date ?? "",
+    hosting: p.hosting ?? "",
+    domain: p.domain ?? "",
+    cloud_storage: p.cloud_storage ?? false,
+    cloud_storage_date: p.cloud_storage_date ?? "",
+    client_id: p.client_id ?? "",
+  };
+}
 
-export function ModalProjects({ onCreated }: ModalProjectsProps) {
-  const [open, setOpen] = useState(false);
+export function EditProject({ project, open, onOpenChange, onUpdated }: EditProjectProps) {
   const [step, setStep] = useState(1);
   const [clients, setClients] = useState<ClientRecord[]>([]);
-  const [isLoadingClients, setIsLoadingClients] = useState(false);
+
   const {
     register,
     handleSubmit,
     reset,
     control,
     formState: { isSubmitting },
-  } = useForm<ProjectFormValues>({ defaultValues });
+  } = useForm<ProjectFormValues>({
+    defaultValues: project ? toFormValues(project) : undefined,
+  });
 
   useEffect(() => {
-    let cancelled = false;
+    if (!open || !project) return;
+    reset(toFormValues(project));
+    setStep(1);
 
-    async function loadClients() {
-      if (!open) return;
-      try {
-        setIsLoadingClients(true);
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from("clients")
-          .select("id, name, alias, email, status, phone_number, location, projects(id, name, status, finish_date)")
-          .order("name");
-        if (error) throw error;
-        if (!cancelled) setClients((data ?? []) as ClientRecord[]);
-      } catch (error) {
-        if (!cancelled)
-          toast.error(
-            error instanceof Error ? error.message : "No se pudieron cargar los clientes"
-          );
-      } finally {
-        if (!cancelled) setIsLoadingClients(false);
-      }
-    }
-
-    loadClients();
-    return () => { cancelled = true; };
-  }, [open]);
+    const supabase = createClient();
+    supabase
+      .from("clients")
+      .select("id, name, alias, email, status, phone_number, location, projects(id, name, status, finish_date)")
+      .order("name")
+      .then(({ data }) => setClients((data ?? []) as ClientRecord[]));
+  }, [open, project, reset]);
 
   const onSubmit: SubmitHandler<ProjectFormValues> = async (data) => {
+    if (!project) return;
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No autenticado");
 
-      const { data: project, error } = await supabase
+      const { data: updated, error } = await supabase
         .from("projects")
-        .insert({
-          user_id: user.id,
+        .update({
           name: data.name,
           price: data.price || null,
           description: data.description || null,
@@ -126,6 +114,7 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
           cloud_storage_date: data.cloud_storage_date || null,
           client_id: data.client_id || null,
         })
+        .eq("id", project.id)
         .select("*, clients(id, name, alias)")
         .single();
 
@@ -139,47 +128,33 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
         cloud_storage_date: string | null;
         clients: { id: string; name: string; alias: string } | null;
       };
-      const rawProject = project as unknown as RawProject;
-      const selectedClient = clients.find((c) => c.id === data.client_id);
+      const raw = updated as unknown as RawProject;
       const projectRecord: ProjectRecord = {
-        ...rawProject,
-        status: rawProject.status as ProjectRecord["status"],
-        client: selectedClient
-          ? { id: selectedClient.id, name: selectedClient.name, alias: selectedClient.alias }
+        ...raw,
+        status: raw.status as ProjectRecord["status"],
+        client: raw.clients
+          ? { id: raw.clients.id, name: raw.clients.name, alias: raw.clients.alias }
           : null,
       };
 
-      onCreated?.(projectRecord);
-      toast.success("Proyecto creado exitosamente");
-      setOpen(false);
-      setStep(1);
-      reset(defaultValues);
+      onUpdated(projectRecord);
+      toast.success("Proyecto actualizado");
+      onOpenChange(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Error al crear el proyecto"
+        error instanceof Error ? error.message : "Error al actualizar el proyecto"
       );
     }
   };
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setStep(1);
-      reset(defaultValues);
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button>Nuevo proyecto</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         {isSubmitting ? <SpinnerOverlay /> : null}
         <DialogHeader>
-          <DialogTitle>Nuevo proyecto</DialogTitle>
+          <DialogTitle>Editar proyecto</DialogTitle>
           <DialogDescription>
-            Registra los datos principales y técnicos del proyecto.
+            {project?.name} — Paso {step} de 2
           </DialogDescription>
         </DialogHeader>
         <form className="grid gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
@@ -187,75 +162,55 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
             <>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nombre</Label>
-                  <Input
-                    id="name"
-                    {...register("name")}
-                    placeholder="Nombre del proyecto"
-                    required
-                  />
+                  <Label htmlFor="edit-name">Nombre</Label>
+                  <Input id="edit-name" {...register("name")} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Precio</Label>
+                  <Label htmlFor="edit-price">Precio</Label>
                   <Input
-                    id="price"
+                    id="edit-price"
+                    type="number"
+                    min="0"
+                    step="0.01"
                     {...register("price", { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-initial_date">Fecha de inicio</Label>
+                  <Input id="edit-initial_date" type="date" {...register("initial_date")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-finish_date">Fecha de entrega</Label>
+                  <Input id="edit-finish_date" type="date" {...register("finish_date")} />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-pre_payment">Pago anticipado</Label>
+                  <Input
+                    id="edit-pre_payment"
                     type="number"
                     min="0"
                     step="0.01"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="initial_date">Fecha de inicio</Label>
-                  <Input
-                    id="initial_date"
-                    type="date"
-                    {...register("initial_date")}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="finish_date">Fecha de entrega</Label>
-                  <Input
-                    id="finish_date"
-                    type="date"
-                    {...register("finish_date")}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="pre_payment">Pago anticipado</Label>
-                  <Input
-                    id="pre_payment"
                     {...register("pre_payment")}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="status">Estado</Label>
+                  <Label>Estado</Label>
                   <Controller
                     name="status"
                     control={control}
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Estado" />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="activo">Activo</SelectItem>
                           <SelectItem value="completo">Completo</SelectItem>
-                          <SelectItem value="descontinuado">
-                            Descontinuado
-                          </SelectItem>
+                          <SelectItem value="descontinuado">Descontinuado</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -267,17 +222,17 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
             <>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="hosting">Renovación de hosting</Label>
-                  <Input id="hosting" type="date" {...register("hosting")} />
+                  <Label htmlFor="edit-hosting">Renovación de hosting</Label>
+                  <Input id="edit-hosting" type="date" {...register("hosting")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="domain">Renovación de dominio</Label>
-                  <Input id="domain" type="date" {...register("domain")} />
+                  <Label htmlFor="edit-domain">Renovación de dominio</Label>
+                  <Input id="edit-domain" type="date" {...register("domain")} />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="cloud_storage">Cloud storage</Label>
+                  <Label>Cloud storage</Label>
                   <Controller
                     name="cloud_storage"
                     control={control}
@@ -293,39 +248,24 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cloud_storage_date">
-                    Renovación de cloud
-                  </Label>
-                  <Input
-                    id="cloud_storage_date"
-                    type="date"
-                    {...register("cloud_storage_date")}
-                  />
+                  <Label htmlFor="edit-cloud_storage_date">Renovación de cloud</Label>
+                  <Input id="edit-cloud_storage_date" type="date" {...register("cloud_storage_date")} />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client_id">Cliente relacionado</Label>
+                <Label>Cliente</Label>
                 <Controller
                   name="client_id"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ""}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
                       <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isLoadingClients
-                              ? "Cargando clientes..."
-                              : "Selecciona un cliente"
-                          }
-                        />
+                        <SelectValue placeholder="Selecciona un cliente" />
                       </SelectTrigger>
                       <SelectContent>
-                        {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.alias}
+                        {clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.alias}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -334,9 +274,9 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
+                <Label htmlFor="edit-description">Descripción</Label>
                 <Textarea
-                  id="description"
+                  id="edit-description"
                   {...register("description")}
                   placeholder="Describe el objetivo y alcance del proyecto"
                 />
@@ -346,11 +286,7 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
 
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
             {step > 1 ? (
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => setStep(1)}
-              >
+              <Button variant="outline" type="button" onClick={() => setStep(1)}>
                 Atrás
               </Button>
             ) : (
@@ -362,7 +298,7 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
               </Button>
             ) : (
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creando..." : "Crear proyecto"}
+                {isSubmitting ? "Guardando..." : "Guardar cambios"}
               </Button>
             )}
           </DialogFooter>

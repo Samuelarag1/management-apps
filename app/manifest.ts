@@ -2,13 +2,15 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Freelance Project Manager",
-    short_name: "FreelancePM",
-    description: "Gestión de proyectos freelance",
+    name: "Freelance Manager",
+    short_name: "FreelanceMgr",
+    description: "Gestión de proyectos, clientes y mantenimientos freelance",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#7c3aed",
+    orientation: "portrait",
+    categories: ["productivity", "business"],
     icons: [
       {
         src: "/icons/icon-192x192.png",
@@ -27,35 +29,21 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
-    orientation: "portrait",
-    categories: ["productivity", "business"],
-    screenshots: [
-      {
-        src: "/screenshots/dashboard.png",
-        sizes: "1280x720",
-        type: "image/png",
-      },
-      {
-        src: "/screenshots/projects.png",
-        sizes: "1280x720",
-        type: "image/png",
-      },
-    ],
     shortcuts: [
       {
-        name: "Dashboard",
-        url: "/",
-        icons: [{ src: "/icons/dashboard-icon.png", sizes: "96x96" }],
-      },
-      {
         name: "Proyectos",
-        url: "/proyectos",
-        icons: [{ src: "/icons/projects-icon.png", sizes: "96x96" }],
+        url: "/projects",
+        description: "Ver todos los proyectos",
       },
       {
-        name: "Tareas",
-        url: "/tareas",
-        icons: [{ src: "/icons/tasks-icon.png", sizes: "96x96" }],
+        name: "Clientes",
+        url: "/clients",
+        description: "Ver todos los clientes",
+      },
+      {
+        name: "Mantenimientos",
+        url: "/maintenance",
+        description: "Ver mantenimientos activos",
       },
     ],
     related_applications: [],
