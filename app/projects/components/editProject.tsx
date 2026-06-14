@@ -160,74 +160,75 @@ export function EditProject({ project, open, onOpenChange, onUpdated }: EditProj
         <form className="grid gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
           {step === 1 ? (
             <>
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Nombre del proyecto</Label>
+                <Input id="edit-name" {...register("name")} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Cliente</Label>
+                <Controller
+                  name="client_id"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                      <SelectTrigger><SelectValue placeholder="Selecciona un cliente" /></SelectTrigger>
+                      <SelectContent>
+                        {clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.alias}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-name">Nombre</Label>
-                  <Input id="edit-name" {...register("name")} required />
+                  <Label htmlFor="edit-price">Precio total</Label>
+                  <Input id="edit-price" type="number" min="0" step="0.01" {...register("price", { valueAsNumber: true })} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-price">Precio</Label>
-                  <Input
-                    id="edit-price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    {...register("price", { valueAsNumber: true })}
-                  />
+                  <Label htmlFor="edit-pre_payment">Pago anticipado</Label>
+                  <Input id="edit-pre_payment" type="number" min="0" step="0.01" {...register("pre_payment")} />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-initial_date">Fecha de inicio</Label>
+                  <Label htmlFor="edit-initial_date">Inicio</Label>
                   <Input id="edit-initial_date" type="date" {...register("initial_date")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-finish_date">Fecha de entrega</Label>
+                  <Label htmlFor="edit-finish_date">Entrega</Label>
                   <Input id="edit-finish_date" type="date" {...register("finish_date")} />
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-pre_payment">Pago anticipado</Label>
-                  <Input
-                    id="edit-pre_payment"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    {...register("pre_payment")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Estado</Label>
-                  <Controller
-                    name="status"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="activo">Activo</SelectItem>
-                          <SelectItem value="completo">Completo</SelectItem>
-                          <SelectItem value="descontinuado">Descontinuado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>Estado</Label>
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="activo">Activo</SelectItem>
+                        <SelectItem value="completo">Completo</SelectItem>
+                        <SelectItem value="descontinuado">Descontinuado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </>
           ) : (
             <>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-hosting">Renovación de hosting</Label>
-                  <Input id="edit-hosting" type="date" {...register("hosting")} />
+                  <Label htmlFor="edit-domain">Vto. dominio</Label>
+                  <Input id="edit-domain" type="date" {...register("domain")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-domain">Renovación de dominio</Label>
-                  <Input id="edit-domain" type="date" {...register("domain")} />
+                  <Label htmlFor="edit-hosting">Vto. hosting</Label>
+                  <Input id="edit-hosting" type="date" {...register("hosting")} />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -238,48 +239,19 @@ export function EditProject({ project, open, onOpenChange, onUpdated }: EditProj
                     control={control}
                     render={({ field }) => (
                       <div className="flex h-10 items-center rounded-md border px-3">
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          aria-label="Cloud storage"
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} aria-label="Cloud storage" />
                       </div>
                     )}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-cloud_storage_date">Renovación de cloud</Label>
+                  <Label htmlFor="edit-cloud_storage_date">Vto. cloud</Label>
                   <Input id="edit-cloud_storage_date" type="date" {...register("cloud_storage_date")} />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Cliente</Label>
-                <Controller
-                  name="client_id"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.alias}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="edit-description">Descripción</Label>
-                <Textarea
-                  id="edit-description"
-                  {...register("description")}
-                  placeholder="Describe el objetivo y alcance del proyecto"
-                />
+                <Textarea id="edit-description" {...register("description")} placeholder="Describe el objetivo y alcance del proyecto" />
               </div>
             </>
           )}

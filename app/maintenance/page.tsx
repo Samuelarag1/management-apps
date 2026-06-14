@@ -145,27 +145,79 @@ function MaintenanceTable({
         ) : items.length === 0 ? (
           <p className="text-sm text-muted-foreground">No hay mantenimientos aquí.</p>
         ) : (
-          <div className="rounded-md border">
-            <div className="grid grid-cols-7 gap-4 p-4 text-sm font-medium text-muted-foreground">
-              <div className="col-span-2">Servicio</div>
-              <div>Proyecto</div>
-              <div>Monto</div>
-              <div>Cobro</div>
-              <div>Estado</div>
-              <div>Acciones</div>
+          <>
+            {/* Desktop table */}
+            <div className="hidden rounded-md border md:block">
+              <div className="grid grid-cols-7 gap-4 p-4 text-sm font-medium text-muted-foreground">
+                <div className="col-span-2">Servicio</div>
+                <div>Proyecto</div>
+                <div>Monto</div>
+                <div>Cobro</div>
+                <div>Estado</div>
+                <div />
+              </div>
+              <div className="divide-y">
+                {items.map((item) => (
+                  <MaintenanceRow
+                    key={item.id}
+                    item={item}
+                    onToggle={onToggle}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="divide-y">
+
+            {/* Mobile cards */}
+            <div className="space-y-3 md:hidden">
               {items.map((item) => (
-                <MaintenanceRow
-                  key={item.id}
-                  item={item}
-                  onToggle={onToggle}
-                  onDelete={onDelete}
-                  onEdit={onEdit}
-                />
+                <div key={item.id} className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold leading-tight">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.clients?.alias ?? "Sin cliente"}
+                      </p>
+                    </div>
+                    <Badge variant={statusVariant(item.status)}>
+                      {STATUS_LABELS[item.status]}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Proyecto</p>
+                      <p>{item.projects?.name ?? "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Monto</p>
+                      <p className="font-semibold">{formatPrice(item.amount)}<span className="text-xs font-normal text-muted-foreground">/mes</span></p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Día de cobro</p>
+                      <p>Día {item.billing_day}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => onEdit(item)}>
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => onToggle(item.id, item.status === "activo" ? "pausado" : "activo")}
+                    >
+                      {item.status === "activo" ? <><Pause className="mr-1 h-3 w-3" />Pausar</> : <><Play className="mr-1 h-3 w-3" />Activar</>}
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => onDelete(item.id)}>
+                      Eliminar
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
+          </>
         )}
       </CardContent>
     </Card>

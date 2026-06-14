@@ -185,142 +185,19 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
         <form className="grid gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
           {step === 1 ? (
             <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre</Label>
-                  <Input
-                    id="name"
-                    {...register("name")}
-                    placeholder="Nombre del proyecto"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Precio</Label>
-                  <Input
-                    id="price"
-                    {...register("price", { valueAsNumber: true })}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="initial_date">Fecha de inicio</Label>
-                  <Input
-                    id="initial_date"
-                    type="date"
-                    {...register("initial_date")}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="finish_date">Fecha de entrega</Label>
-                  <Input
-                    id="finish_date"
-                    type="date"
-                    {...register("finish_date")}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="pre_payment">Pago anticipado</Label>
-                  <Input
-                    id="pre_payment"
-                    {...register("pre_payment")}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="status">Estado</Label>
-                  <Controller
-                    name="status"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Estado" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="activo">Activo</SelectItem>
-                          <SelectItem value="completo">Completo</SelectItem>
-                          <SelectItem value="descontinuado">
-                            Descontinuado
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="hosting">Renovación de hosting</Label>
-                  <Input id="hosting" type="date" {...register("hosting")} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="domain">Renovación de dominio</Label>
-                  <Input id="domain" type="date" {...register("domain")} />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="cloud_storage">Cloud storage</Label>
-                  <Controller
-                    name="cloud_storage"
-                    control={control}
-                    render={({ field }) => (
-                      <div className="flex h-10 items-center rounded-md border px-3">
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          aria-label="Cloud storage"
-                        />
-                      </div>
-                    )}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cloud_storage_date">
-                    Renovación de cloud
-                  </Label>
-                  <Input
-                    id="cloud_storage_date"
-                    type="date"
-                    {...register("cloud_storage_date")}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre del proyecto</Label>
+                <Input id="name" {...register("name")} placeholder="Nombre del proyecto" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client_id">Cliente relacionado</Label>
+                <Label htmlFor="client_id">Cliente</Label>
                 <Controller
                   name="client_id"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ""}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
                       <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            isLoadingClients
-                              ? "Cargando clientes..."
-                              : "Selecciona un cliente"
-                          }
-                        />
+                        <SelectValue placeholder={isLoadingClients ? "Cargando..." : "Selecciona un cliente"} />
                       </SelectTrigger>
                       <SelectContent>
                         {clients.map((client) => (
@@ -333,13 +210,77 @@ export function ModalProjects({ onCreated }: ModalProjectsProps) {
                   )}
                 />
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="price">Precio total</Label>
+                  <Input id="price" {...register("price", { valueAsNumber: true })} type="number" min="0" step="0.01" placeholder="0.00" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pre_payment">Pago anticipado</Label>
+                  <Input id="pre_payment" {...register("pre_payment")} type="number" min="0" step="0.01" placeholder="0.00" />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="initial_date">Inicio</Label>
+                  <Input id="initial_date" type="date" {...register("initial_date")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="finish_date">Entrega</Label>
+                  <Input id="finish_date" type="date" {...register("finish_date")} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Estado</Label>
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="activo">Activo</SelectItem>
+                        <SelectItem value="completo">Completo</SelectItem>
+                        <SelectItem value="descontinuado">Descontinuado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="domain">Vto. dominio</Label>
+                  <Input id="domain" type="date" {...register("domain")} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hosting">Vto. hosting</Label>
+                  <Input id="hosting" type="date" {...register("hosting")} />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="cloud_storage">Cloud storage</Label>
+                  <Controller
+                    name="cloud_storage"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex h-10 items-center rounded-md border px-3">
+                        <Switch checked={field.value} onCheckedChange={field.onChange} aria-label="Cloud storage" />
+                      </div>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cloud_storage_date">Vto. cloud</Label>
+                  <Input id="cloud_storage_date" type="date" {...register("cloud_storage_date")} />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  {...register("description")}
-                  placeholder="Describe el objetivo y alcance del proyecto"
-                />
+                <Textarea id="description" {...register("description")} placeholder="Describe el objetivo y alcance del proyecto" />
               </div>
             </>
           )}
