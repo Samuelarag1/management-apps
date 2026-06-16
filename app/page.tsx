@@ -23,10 +23,10 @@ export default async function Home() {
   let activeProjectCount = 0;
   let completedProjectCount = 0;
   let clientCount = 0;
-  let totalRevenue = 0;
   let monthlyMaintenance = 0;
   let activeMaintCount = 0;
   let recentMaintenances: Array<{ id: string; name: string; amount: number; status: string; clientAlias: string | null }> = [];
+  let monthlyWorkTotal = 0;
   let overviewProjects: Array<{
     id: string;
     name: string;
@@ -36,14 +36,17 @@ export default async function Home() {
   }> = [];
 
   try {
+    const now = new Date();
+    const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+
     const [
       { count: total },
       { count: active },
       { count: completed },
       { count: clients },
-      { data: revenueData },
       { data: recentProjects },
       { data: maintenanceData },
+      { data: workThisMonth },
     ] = await Promise.all([
       supabase.from("projects").select("*", { count: "exact", head: true }),
       supabase
@@ -55,7 +58,6 @@ export default async function Home() {
         .select("*", { count: "exact", head: true })
         .eq("status", "completo"),
       supabase.from("clients").select("*", { count: "exact", head: true }),
-      supabase.from("projects").select("price"),
       supabase
         .from("projects")
         .select("id, name, status, finish_date, clients(name, alias)")
@@ -66,16 +68,17 @@ export default async function Home() {
         .select("id, name, amount, status, clients(name, alias)")
         .order("created_at", { ascending: false })
         .limit(5),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
+        .from("work_items")
+        .select("amount")
+        .gte("work_date", firstOfMonth),
     ]);
 
     projectCount = total ?? 0;
     activeProjectCount = active ?? 0;
     completedProjectCount = completed ?? 0;
     clientCount = clients ?? 0;
-    totalRevenue = (revenueData ?? []).reduce(
-      (sum, p) => sum + (p.price ?? 0),
-      0
-    );
 
     type RawRecent = { id: string; name: string; status: string | null; finish_date: string | null; clients: { name: string; alias: string } | null };
     overviewProjects = ((recentProjects ?? []) as unknown as RawRecent[]).map((p) => ({
@@ -99,6 +102,10 @@ export default async function Home() {
       status: m.status,
       clientAlias: m.clients?.alias ?? null,
     }));
+    monthlyWorkTotal = ((workThisMonth ?? []) as { amount: number }[]).reduce(
+      (sum, w) => sum + (w.amount ?? 0),
+      0
+    );
   } catch {
     // silently degrade — data will show zeros
   }
@@ -153,16 +160,16 @@ export default async function Home() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Ganancia mensual
+                  Este mes
                 </CardTitle>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {formatPrice(monthlyMaintenance)}
+                  {formatPrice(monthlyMaintenance + monthlyWorkTotal)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  de mantenimientos · {formatPrice(totalRevenue)} acumulado
+                  {formatPrice(monthlyMaintenance)} mant. · {formatPrice(monthlyWorkTotal)} trabajos
                 </p>
               </CardContent>
             </Card>
@@ -237,6 +244,9 @@ export default async function Home() {
                   </Button>
                   <Button asChild variant="outline" className="justify-start">
                     <Link href="/maintenance">Mantenimientos</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="justify-start">
+                    <Link href="/work">Trabajos</Link>
                   </Button>
                 </CardContent>
               </Card>

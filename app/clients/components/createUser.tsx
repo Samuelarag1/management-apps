@@ -91,7 +91,7 @@ export function ModalClients({ title, onCreated }: ModalClientsProps) {
       <DialogTrigger asChild>
         <Button>{title}</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         {isSubmitting ? <SpinnerOverlay /> : null}
         <DialogHeader>
           <DialogTitle>Nuevo cliente</DialogTitle>
@@ -100,67 +100,30 @@ export function ModalClients({ title, onCreated }: ModalClientsProps) {
           </DialogDescription>
         </DialogHeader>
         <form className="grid gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Nombre
-            </Label>
-            <Input
-              id="name"
-              {...register("name")}
-              placeholder="Samuel Aragon"
-              className="col-span-3"
-              required
-            />
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre completo</Label>
+            <Input id="name" {...register("name")} placeholder="Samuel Aragon" required />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="alias" className="text-right">
-              Empresa
-            </Label>
-            <Input
-              id="alias"
-              {...register("alias")}
-              placeholder="SamaragTech"
-              className="col-span-3"
-              required
-            />
+          <div className="space-y-2">
+            <Label htmlFor="alias">Empresa / alias</Label>
+            <Input id="alias" {...register("alias")} placeholder="SamaragTech" required />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">
-              Email
-            </Label>
-            <Input
-              id="email"
-              {...register("email")}
-              type="email"
-              placeholder="email@email.com"
-              className="col-span-3"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" {...register("email")} type="email" placeholder="email@email.com" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone_number">Teléfono</Label>
+              <Input id="phone_number" {...register("phone_number")} placeholder="+54 9 11..." />
+            </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="phone_number" className="text-right">
-              Teléfono
-            </Label>
-            <Input
-              id="phone_number"
-              {...register("phone_number")}
-              placeholder="123-456-789"
-              className="col-span-3"
-            />
+          <div className="space-y-2">
+            <Label htmlFor="location">Ubicación</Label>
+            <Input id="location" {...register("location")} placeholder="Córdoba, Argentina" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="location" className="text-right">
-              Ubicación
-            </Label>
-            <Input
-              id="location"
-              {...register("location")}
-              placeholder="Córdoba, Argentina"
-              className="col-span-3"
-            />
-          </div>
-
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Guardando..." : "Crear cliente"}
             </Button>
           </DialogFooter>

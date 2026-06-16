@@ -125,6 +125,24 @@ export interface MaintenanceRecord {
   projects: { name: string } | null;
 }
 
+export type WorkItemStatus = "pendiente" | "en_progreso" | "completado" | "facturado";
+
+export interface WorkItemRecord {
+  id: string;
+  created_at: string;
+  user_id: string;
+  project_id: string | null;
+  client_id: string | null;
+  title: string;
+  description: string | null;
+  amount: number;
+  hours: number | null;
+  work_date: string;
+  status: WorkItemStatus;
+  clients: { name: string; alias: string } | null;
+  projects: { name: string } | null;
+}
+
 export interface DashboardSummary {
   projectCount: number;
   activeProjectCount: number;
